@@ -31,7 +31,7 @@ export default function BottomTabBar({ role, accentColor }: BottomTabBarProps) {
   const tabs = role === 'parent' ? PARENT_TABS : CHILD_TABS
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-10 flex items-end justify-center border-t border-[#ebebeb] bg-white pb-[max(12px,env(safe-area-inset-bottom))] pt-px">
+    <div className="flex items-end justify-center border-t border-[#ebebeb] bg-white pb-[max(12px,env(safe-area-inset-bottom))] pt-px">
       {tabs.map(({ to, label, Icon }) => (
         <NavLink key={to} to={to} className="flex flex-1 flex-col items-center justify-center gap-1 pt-2">
           {({ isActive }) => (

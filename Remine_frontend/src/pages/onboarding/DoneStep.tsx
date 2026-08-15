@@ -1,3 +1,4 @@
+import Screen from '@/components/Screen'
 import StepNav from '@/components/StepNav'
 import PillButton from '@/components/PillButton'
 import type { OnboardingState } from '@/pages/onboarding/types'
@@ -15,9 +16,15 @@ export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
   const accentColor = ROLE_COLOR[role]
 
   return (
-    <div className="relative min-h-screen w-full bg-remine-bg">
+    <Screen
+      footer={
+        <PillButton onClick={onFinish} color={accentColor}>
+          시작하기
+        </PillButton>
+      }
+    >
       <StepNav onBack={onBack} />
-      <div className="flex flex-col items-center px-6 pb-32 pt-8 text-center">
+      <div className="flex flex-col items-center px-6 pt-8 text-center">
         <div
           className="mb-6 flex size-20 items-center justify-center rounded-[28px] text-3xl"
           style={{ backgroundColor: `${accentColor}17` }}
@@ -87,10 +94,6 @@ export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
           </div>
         )}
       </div>
-
-      <PillButton onClick={onFinish} color={accentColor}>
-        시작하기
-      </PillButton>
-    </div>
+    </Screen>
   )
 }
