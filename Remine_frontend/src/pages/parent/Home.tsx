@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import BottomTabBar from '@/components/BottomTabBar'
+import ModeBar from '@/components/ModeBar'
 import { BellIcon } from '@/components/icons/NavIcons'
 import familyPhoto from '@/assets/memories/family-trip.png'
 
@@ -24,15 +25,7 @@ const ACTIVITIES = [
 export default function ParentHome() {
   return (
     <Screen footer={<BottomTabBar role="parent" accentColor="#ff42ad" />}>
-      <div className="flex items-center justify-between px-5 pb-2 pt-[62px]">
-        <div className="flex h-9 flex-1 items-center gap-2 rounded-xl bg-[#f2f2ee] px-3.5">
-          <span className="size-2 shrink-0 rounded-sm bg-remine-pink" />
-          <span className="text-[13px] text-[#1a1a1a]">부모님 모드 — 윤정아님</span>
-          <button type="button" className="ml-auto text-[12px] text-[#9a9c91]">
-            전환 ›
-          </button>
-        </div>
-      </div>
+      <ModeBar label="부모님 모드 — 윤정아님" color="#ff42ad" />
 
       <div className="flex items-center justify-between px-5 py-3.5">
         <span className="text-[19px] font-semibold text-[#1a1a1a]">
@@ -43,7 +36,7 @@ export default function ParentHome() {
             <BellIcon className="size-6 text-[#1a1a1a]" />
             <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-pink" />
           </button>
-          <Link to="/onboarding" className="flex size-9 items-center justify-center rounded-full bg-[#fff7cc] text-[14px]">
+          <Link to="/parent/mypage" className="flex size-9 items-center justify-center rounded-full bg-[#fff7cc] text-[14px]">
             👩
           </Link>
         </div>
@@ -138,9 +131,12 @@ export default function ParentHome() {
               <span className="w-fit rounded-full bg-[#fff7cc] px-2.5 py-0.5 text-[12px] text-[#1a1a1a]">2022년 봄</span>
               <p className="pt-1 text-[17px] text-[#1a1a1a]">가족 여행 📸</p>
               <p className="pb-2 text-[15px] text-[#66695d]">이 사진과 관련된 퀴즈를 풀어볼까요?</p>
-              <button type="button" className="h-12 rounded-xl bg-[#fff7cc] text-[16px] font-semibold text-[#1a1a1a]">
+              <Link
+                to="/parent/memories/quiz"
+                className="flex h-12 items-center justify-center rounded-xl bg-[#fff7cc] text-[16px] font-semibold text-[#1a1a1a]"
+              >
                 추억 퀴즈 풀기
-              </button>
+              </Link>
             </div>
           </div>
         </div>
