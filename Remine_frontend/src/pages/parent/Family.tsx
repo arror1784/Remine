@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
@@ -12,7 +12,7 @@ const MEMBERS = [
   { id: 'jungsik', emoji: '🧑', name: '남편 정식', relation: '남편', color: '#ff42ad', online: true, activity: '댓글 3개 추가' },
 ]
 
-const FEED = [
+const INITIAL_FEED = [
   {
     id: 1,
     author: '딸 지영',
@@ -22,6 +22,8 @@ const FEED = [
     text: '엄마 요즘 어떻게 지내세요? 오늘 날씨 좋던데 산책 다녀오셨어요?',
     photo: familyTrip,
     caption: '2022년 봄 가족 여행 사진 추가했어요 🌸',
+    liked: false,
+    likes: 2,
   },
   {
     id: 2,
@@ -31,6 +33,8 @@ const FEED = [
     time: '2시간 전',
     text: '어머니, 이번 주말에 놀러갈게요! 손주들도 같이 데려갈게요 😊',
     photo: null,
+    liked: false,
+    likes: 1,
   },
   {
     id: 3,
@@ -41,6 +45,8 @@ const FEED = [
     text: '오래된 앨범 정리하다가 찾았어요! 손주 돌잔치 때 사진이에요 ㅎㅎ',
     photo: grandchild,
     caption: '첫 손주 돌잔치 사진 추가했어요 🎂',
+    liked: true,
+    likes: 3,
   },
   {
     id: 4,
@@ -50,12 +56,35 @@ const FEED = [
     time: '그저께',
     text: '엄마 어제 많이 걸으셨어요? 앱 보니까 목표 달성하셨던데 👍 대단해요!',
     photo: null,
+    liked: false,
+    likes: 0,
   },
 ]
 
 export default function ParentFamily() {
   const [selected, setSelected] = useState(MEMBERS[0].id)
+  const [feed, setFeed] = useState(INITIAL_FEED)
+  const [draft, setDraft] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const member = MEMBERS.find((m) => m.id === selected) ?? MEMBERS[0]
+
+  const toggleLike = (id: number) => {
+    setFeed((prev) => prev.map((p) => (p.id === id ? { ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) } : p)))
+  }
+
+  const replyTo = (author: string) => {
+    setDraft(`${author}님에게: `)
+    textareaRef.current?.focus()
+  }
+
+  const postMessage = () => {
+    if (!draft.trim()) return
+    setFeed((prev) => [
+      { id: Date.now(), author: '나', emoji: '👩', color: '#ff42ad', time: '방금 전', text: draft, photo: null, liked: false, likes: 0 },
+      ...prev,
+    ])
+    setDraft('')
+  }
 
   return (
     <Screen footer={<BottomTabBar role="parent" accentColor="#ff42ad" />}>
@@ -159,8 +188,8 @@ export default function ParentFamily() {
 
         <div className="flex flex-col">
           <h2 className="pb-3 text-[18px] font-semibold text-[#1a1a1a]">가족 소식</h2>
-          {FEED.map((post, i) => (
-            <div key={post.id} className={`flex flex-col gap-2.5 py-4 ${i < FEED.length - 1 ? 'border-b border-[#ebebeb]' : ''}`}>
+          {feed.map((post, i) => (
+            <div key={post.id} className={`flex flex-col gap-2.5 py-4 ${i < feed.length - 1 ? 'border-b border-[#ebebeb]' : ''}`}>
               <div className="flex items-center gap-2.5">
                 <div
                   className="flex size-[42px] items-center justify-center rounded-full border-2 bg-[#f2f2ee] text-[15px]"
@@ -181,10 +210,19 @@ export default function ParentFamily() {
                 </div>
               )}
               <div className="flex gap-2">
-                <button type="button" className="flex h-9 items-center gap-1.5 rounded-full bg-[#f2f2ee] px-3.5 text-[14px] text-[#66695d]">
-                  <span className="text-remine-pink">❤</span> 좋아요
+                <button
+                  type="button"
+                  onClick={() => toggleLike(post.id)}
+                  className="flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[14px]"
+                  style={{ backgroundColor: post.liked ? '#ffe3f2' : '#f2f2ee', color: post.liked ? '#ff42ad' : '#66695d' }}
+                >
+                  <span style={{ color: '#ff42ad' }}>{post.liked ? '❤' : '♡'}</span> 좋아요{post.likes > 0 ? ` ${post.likes}` : ''}
                 </button>
-                <button type="button" className="flex h-9 items-center gap-1.5 rounded-full bg-[#f2f2ee] px-3.5 text-[14px] text-[#66695d]">
+                <button
+                  type="button"
+                  onClick={() => replyTo(post.author)}
+                  className="flex h-9 items-center gap-1.5 rounded-full bg-[#f2f2ee] px-3.5 text-[14px] text-[#66695d]"
+                >
                   <span className="text-remine-blue">💬</span> 답글
                 </button>
               </div>
@@ -195,9 +233,20 @@ export default function ParentFamily() {
         <div className="flex flex-col gap-3">
           <p className="text-[16.9px] font-semibold text-[#1a1a1a]">가족에게 메시지 남기기</p>
           <textarea
+            ref={textareaRef}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
             placeholder="오늘 있었던 일을 가족들과 나눠보세요..."
             className="h-[97px] resize-none rounded-2xl border border-[#ebebeb] bg-white px-4 py-3.5 text-[16px] placeholder:text-[#1a1a1a]/50 focus:outline-none"
           />
+          <button
+            type="button"
+            onClick={postMessage}
+            disabled={!draft.trim()}
+            className="h-12 rounded-xl bg-remine-pink text-[15px] font-semibold text-white disabled:opacity-40"
+          >
+            남기기
+          </button>
         </div>
       </div>
     </Screen>

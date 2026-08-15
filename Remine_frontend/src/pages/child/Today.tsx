@@ -1,12 +1,13 @@
+import { useState } from 'react'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
 
 const CHECKLIST = [
-  { emoji: '🌙', label: '수면', status: '완료', done: true, desc: '오전 7:14 기상', bg: '#e8f8ff' },
-  { emoji: '🍚', label: '아침식사', status: '미완료', done: false, desc: '아직 기록 없어요', bg: '#f7f7f3' },
-  { emoji: '🚶', label: '산책', status: '미완료', done: false, desc: '목표의 55%', bg: '#f7f7f3' },
-  { emoji: '🧩', label: '퀴즈', status: '미완료', done: false, desc: '오늘 퀴즈 대기 중', bg: '#f7f7f3' },
+  { id: 'sleep', emoji: '🌙', label: '수면', status: '완료', done: true, desc: '오전 7:14 기상', bg: '#e8f8ff' },
+  { id: 'breakfast', emoji: '🍚', label: '아침식사', status: '미완료', done: false, desc: '아직 기록 없어요', bg: '#f7f7f3' },
+  { id: 'walk', emoji: '🚶', label: '산책', status: '미완료', done: false, desc: '목표의 55%', bg: '#f7f7f3' },
+  { id: 'quiz', emoji: '🧩', label: '퀴즈', status: '미완료', done: false, desc: '오늘 퀴즈 대기 중', bg: '#f7f7f3' },
 ]
 
 const TIMELINE = [
@@ -17,6 +18,12 @@ const TIMELINE = [
 ]
 
 export default function ChildToday() {
+  const [cheeredIds, setCheeredIds] = useState<string[]>([])
+
+  const sendCheer = (id: string) => {
+    setCheeredIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+  }
+
   return (
     <Screen footer={<BottomTabBar role="child" accentColor="#37ceff" />}>
       <ModeBar label="자녀 모드 — 지영님" color="#37ceff" dark />
@@ -37,32 +44,41 @@ export default function ChildToday() {
 
         <div className="flex flex-col gap-2.5">
           <h2 className="pb-1 text-[18px] font-semibold text-[#1a1a1a]">활동 체크리스트</h2>
-          {CHECKLIST.map((item) => (
-            <div key={item.label} className="flex items-center gap-3.5 rounded-2xl border border-[#ebebeb] bg-white px-[18px] py-4">
-              <div className="flex size-11 items-center justify-center rounded-2xl text-[17px]" style={{ backgroundColor: item.bg }}>
-                {item.emoji}
-              </div>
-              <div className="flex flex-1 flex-col gap-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-[16px] font-medium text-[#1a1a1a]">{item.label}</span>
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[12px] font-semibold"
-                    style={{ backgroundColor: item.done ? '#e8f8ff' : '#f2f2ee', color: item.done ? '#37ceff' : '#9a9c91' }}
-                  >
-                    {item.status}
-                  </span>
+          {CHECKLIST.map((item) => {
+            const cheered = cheeredIds.includes(item.id)
+            return (
+              <div key={item.id} className="flex items-center gap-3.5 rounded-2xl border border-[#ebebeb] bg-white px-[18px] py-4">
+                <div className="flex size-11 items-center justify-center rounded-2xl text-[17px]" style={{ backgroundColor: item.bg }}>
+                  {item.emoji}
                 </div>
-                <span className="text-[13px] text-[#9a9c91]">{item.desc}</span>
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[16px] font-medium text-[#1a1a1a]">{item.label}</span>
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[12px] font-semibold"
+                      style={{ backgroundColor: item.done ? '#e8f8ff' : '#f2f2ee', color: item.done ? '#37ceff' : '#9a9c91' }}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+                  <span className="text-[13px] text-[#9a9c91]">{item.desc}</span>
+                </div>
+                {item.done ? (
+                  <span className="flex size-7 items-center justify-center rounded-full bg-remine-blue text-white">✓</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => sendCheer(item.id)}
+                    disabled={cheered}
+                    className="h-[34px] shrink-0 rounded-[10px] px-3 text-[13px] font-semibold disabled:text-[#9a9c91]"
+                    style={{ backgroundColor: cheered ? '#f2f2ee' : '#fff7cc', color: cheered ? undefined : '#1a1a1a' }}
+                  >
+                    {cheered ? '보냈어요 ✓' : '응원 보내기'}
+                  </button>
+                )}
               </div>
-              {item.done ? (
-                <span className="flex size-7 items-center justify-center rounded-full bg-remine-blue text-white">✓</span>
-              ) : (
-                <button type="button" className="h-[34px] shrink-0 rounded-[10px] bg-[#fff7cc] px-3 text-[13px] font-semibold text-[#1a1a1a]">
-                  응원 보내기
-                </button>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="flex flex-col gap-3">
