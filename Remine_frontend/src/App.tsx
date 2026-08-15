@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import PhoneFrame from '@/components/PhoneFrame'
 import Splash from '@/pages/Splash'
 import OnboardingFlow from '@/pages/onboarding/OnboardingFlow'
 import ParentHome from '@/pages/parent/Home'
@@ -6,7 +7,7 @@ import Placeholder from '@/components/Placeholder'
 
 function App() {
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-[480px] bg-remine-bg">
+    <PhoneFrame>
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/onboarding" element={<OnboardingFlow />} />
@@ -21,7 +22,7 @@ function App() {
         <Route path="/child/memories" element={<Placeholder role="child" accentColor="#37ceff" label="추억" />} />
         <Route path="/child/family" element={<Placeholder role="child" accentColor="#37ceff" label="가족" />} />
       </Routes>
-    </div>
+    </PhoneFrame>
   )
 }
 

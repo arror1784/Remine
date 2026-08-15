@@ -9,7 +9,7 @@ type PillButtonProps = {
 
 export default function PillButton({ children, onClick, disabled, color = '#1a1a1a' }: PillButtonProps) {
   return (
-    <div className="fixed bottom-0 left-1/2 z-10 w-full max-w-[480px] -translate-x-1/2 bg-gradient-to-t from-remine-bg from-60% to-transparent px-6 pb-[max(20px,env(safe-area-inset-bottom))] pt-6">
+    <div className="fixed inset-x-0 bottom-0 z-10 bg-gradient-to-t from-remine-bg from-60% to-transparent px-6 pb-[max(20px,env(safe-area-inset-bottom))] pt-6">
       <button
         type="button"
         onClick={onClick}
