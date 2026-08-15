@@ -1,8 +1,12 @@
-import { Link } from 'react-router-dom'
 import logo from '@/assets/onboarding-logo.svg'
 import remindIcon from '@/assets/onboarding-remind-icon.svg'
+import PillButton from '@/components/PillButton'
 
-export default function Onboarding() {
+type WelcomeStepProps = {
+  onNext: () => void
+}
+
+export default function WelcomeStep({ onNext }: WelcomeStepProps) {
   return (
     <div className="relative flex h-full min-h-[874px] w-full flex-col items-center justify-center bg-remine-bg px-6">
       <div className="absolute left-1/2 top-1/2 flex w-[245px] -translate-x-1/2 -translate-y-1/2 flex-col items-start gap-6">
@@ -27,12 +31,7 @@ export default function Onboarding() {
         </p>
       </div>
 
-      <Link
-        to="/home"
-        className="absolute bottom-[52px] left-6 right-6 flex h-[52px] items-center justify-center rounded-full bg-remine-dark text-base font-semibold text-white"
-      >
-        시작하기
-      </Link>
+      <PillButton onClick={onNext}>시작하기</PillButton>
     </div>
   )
 }
