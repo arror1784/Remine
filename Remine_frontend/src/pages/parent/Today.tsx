@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
@@ -17,9 +18,9 @@ const PATTERNS = [
 ]
 
 const SUGGESTIONS = [
-  { emoji: '🏃', dot: '#1a1a1a', title: '20분 산책', desc: '오후 2~4시 사이 가볍게' },
-  { emoji: '📞', dot: '#ff42ad', title: '가족에게 전화하기', desc: '짧은 통화도 큰 힘이 돼요' },
-  { emoji: '🧩', dot: '#ffb84d', title: '오늘의 추억 퀴즈', desc: '5분이면 충분해요' },
+  { emoji: '🏃', dot: '#1a1a1a', title: '20분 산책', desc: '오후 2~4시 사이 가볍게', to: '/parent/reminders/walk' },
+  { emoji: '📞', dot: '#ff42ad', title: '가족에게 전화하기', desc: '짧은 통화도 큰 힘이 돼요', to: '/parent/reminders/call' },
+  { emoji: '🧩', dot: '#ffb84d', title: '오늘의 추억 퀴즈', desc: '5분이면 충분해요', to: '/parent/reminders/quiz' },
 ]
 
 export default function ParentToday() {
@@ -93,9 +94,12 @@ export default function ParentToday() {
                 </div>
                 <span className="text-[14px] text-[#9a9c91]">{s.desc}</span>
               </div>
-              <button type="button" className="h-10 shrink-0 rounded-xl bg-[#fff7cc] px-4 text-[15px] font-semibold text-[#1a1a1a]">
+              <Link
+                to={s.to}
+                className="flex h-10 shrink-0 items-center justify-center rounded-xl bg-[#fff7cc] px-4 text-[15px] font-semibold text-[#1a1a1a]"
+              >
                 시작
-              </button>
+              </Link>
             </div>
           ))}
         </div>

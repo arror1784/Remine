@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 type ModeBarProps = {
   label: string
   color: string
@@ -15,9 +17,9 @@ export default function ModeBar({ label, color, dark }: ModeBarProps) {
         <span className="text-[13px]" style={{ color: dark ? '#ffffff' : '#1a1a1a' }}>
           {label}
         </span>
-        <button type="button" className="ml-auto text-[12px]" style={{ color: dark ? 'rgba(255,255,255,0.4)' : '#9a9c91' }}>
+        <Link to="/switch-mode" className="ml-auto text-[12px]" style={{ color: dark ? 'rgba(255,255,255,0.4)' : '#9a9c91' }}>
           전환 ›
-        </button>
+        </Link>
       </div>
     </div>
   )

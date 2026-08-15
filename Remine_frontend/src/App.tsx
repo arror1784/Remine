@@ -2,14 +2,19 @@ import { Routes, Route } from 'react-router-dom'
 import PhoneFrame from '@/components/PhoneFrame'
 import Splash from '@/pages/Splash'
 import OnboardingFlow from '@/pages/onboarding/OnboardingFlow'
+import SwitchMode from '@/pages/SwitchMode'
 import ParentHome from '@/pages/parent/Home'
 import ParentToday from '@/pages/parent/Today'
 import ParentMyPage from '@/pages/parent/MyPage'
+import ParentNotifications from '@/pages/parent/Notifications'
 import MemoryGallery from '@/pages/parent/memories/Gallery'
 import MemoryQuiz from '@/pages/parent/memories/Quiz'
 import ParentFamily from '@/pages/parent/Family'
 import ParentMessage from '@/pages/parent/Message'
 import ParentCall from '@/pages/parent/Call'
+import WalkReminder from '@/pages/parent/reminders/WalkReminder'
+import CallReminder from '@/pages/parent/reminders/CallReminder'
+import QuizReminder from '@/pages/parent/reminders/QuizReminder'
 import ChildHome from '@/pages/child/Home'
 import ChildToday from '@/pages/child/Today'
 import ChildMyPage from '@/pages/child/MyPage'
@@ -26,15 +31,20 @@ function App() {
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/onboarding" element={<OnboardingFlow />} />
+        <Route path="/switch-mode" element={<SwitchMode />} />
 
         <Route path="/parent/home" element={<ParentHome />} />
         <Route path="/parent/today" element={<ParentToday />} />
         <Route path="/parent/mypage" element={<ParentMyPage />} />
+        <Route path="/parent/notifications" element={<ParentNotifications />} />
         <Route path="/parent/memories" element={<MemoryGallery />} />
         <Route path="/parent/memories/quiz" element={<MemoryQuiz />} />
         <Route path="/parent/family" element={<ParentFamily />} />
         <Route path="/parent/family/message" element={<ParentMessage />} />
         <Route path="/parent/family/call" element={<ParentCall />} />
+        <Route path="/parent/reminders/walk" element={<WalkReminder />} />
+        <Route path="/parent/reminders/call" element={<CallReminder />} />
+        <Route path="/parent/reminders/quiz" element={<QuizReminder />} />
 
         <Route path="/child/home" element={<ChildHome />} />
         <Route path="/child/today" element={<ChildToday />} />

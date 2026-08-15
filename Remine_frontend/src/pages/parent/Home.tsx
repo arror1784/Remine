@@ -32,10 +32,10 @@ export default function ParentHome() {
           Rem<span className="text-remine-pink">e</span>ine
         </span>
         <div className="flex items-center gap-2">
-          <button type="button" className="relative flex items-start p-1">
+          <Link to="/parent/notifications" className="relative flex items-start p-1">
             <BellIcon className="size-6 text-[#1a1a1a]" />
             <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-pink" />
-          </button>
+          </Link>
           <Link to="/parent/mypage" className="flex size-9 items-center justify-center rounded-full bg-[#fff7cc] text-[14px]">
             👩
           </Link>
@@ -116,9 +116,12 @@ export default function ParentHome() {
           </div>
           <p className="pt-1 text-[20px] font-semibold text-[#1a1a1a]">오늘 오후 산책 어떠세요?</p>
           <p className="pb-3 text-[15px] leading-[1.5] text-[#66695d]">걸음 수가 평소보다 적어요. 20분 가벼운 산책이 기분 전환에 도움이 돼요.</p>
-          <button type="button" className="h-[52px] rounded-2xl bg-[#1a1a1a] text-[17px] font-semibold text-white">
+          <Link
+            to="/parent/reminders/walk"
+            className="flex h-[52px] items-center justify-center rounded-2xl bg-[#1a1a1a] text-[17px] font-semibold text-white"
+          >
             산책 시작하기
-          </button>
+          </Link>
         </div>
 
         <div className="flex flex-col gap-4">
