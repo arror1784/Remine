@@ -129,9 +129,12 @@ export default function ParentFamily() {
             >
               💬 메시지 보내기
             </Link>
-            <button type="button" className="flex h-11 flex-1 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-[13.5px] font-semibold text-white">
+            <Link
+              to="/parent/family/call"
+              className="flex h-11 flex-1 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-[13.5px] font-semibold text-white"
+            >
               📞 전화하기
-            </button>
+            </Link>
           </div>
         </div>
 

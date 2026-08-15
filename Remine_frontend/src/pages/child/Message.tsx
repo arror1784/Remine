@@ -3,17 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import Screen from '@/components/Screen'
 
 const INITIAL_MESSAGES = [
-  { from: 'them', time: '오전 10:12', text: '엄마 요즘 어때요? 오늘 날씨 좋은데 산책 다녀왔어요?' },
-  { from: 'me', time: '오전 10:15', text: '웅 동네 한 바퀴 돌고 왔어~ 기분 좋더라!' },
-  { from: 'them', time: '오전 10:16', text: '다행이다🥰 이번 주 주말에 놀러갈게요!' },
-  { from: 'me', time: '오전 10:18', text: '그래 지영이도 밥 챙겨 먹고' },
-  { from: 'me', time: '오전 10:18', text: '주말에 봐 딸 오늘도 화이팅!' },
-  { from: 'them', time: '오전 10:19', text: '웅 엄마도 꼭 밥 챙겨드세요' },
+  { from: 'them', time: '오전 10:12', text: '지영아, 오늘 날씨 참 좋더라!' },
+  { from: 'me', time: '오전 10:15', text: '맞아요 엄마! 아침 산책 다녀오셨어요?' },
+  { from: 'them', time: '오전 10:16', text: '응 아빠랑 동네 한 바퀴 돌고 왔어. 기분 좋네~' },
+  { from: 'me', time: '오전 10:18', text: '다행이에요 😊 아침 밥은 챙겨 드셨어요?' },
+  { from: 'them', time: '오전 10:19', text: '웅~ 아침에는 그릭요거트에 블루베리 먹었지' },
 ]
 
-const QUICK_REPLIES = ['잘 있어💕', '알겠어~', '우리 딸 고마워 ❤️', '보고싶다', '전화할게']
+const QUICK_REPLIES = ['잘 지내고 계세요? 💕', '오늘도 화이팅이에요!', '보고 싶어요 엄마 😊']
 
-export default function ParentMessage() {
+export default function ChildMessage() {
   const navigate = useNavigate()
   const [messages, setMessages] = useState(INITIAL_MESSAGES)
   const [draft, setDraft] = useState('')
@@ -50,10 +49,10 @@ export default function ParentMessage() {
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="직접 입력..."
+              placeholder="어머니께 메시지..."
               className="h-12 flex-1 rounded-full bg-[#f2f2ee] px-4 text-[15px] focus:outline-none"
             />
-            <button type="submit" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-remine-pink text-white">
+            <button type="submit" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-remine-blue text-white">
               ➤
             </button>
           </form>
@@ -64,14 +63,14 @@ export default function ParentMessage() {
         <button type="button" onClick={() => navigate(-1)} className="text-[20px] text-[#1a1a1a]">
           ‹
         </button>
-        <span className="flex size-9 items-center justify-center rounded-full bg-[#fff7cc] text-[15px]">👧</span>
+        <span className="flex size-9 items-center justify-center rounded-full bg-[#fff7cc] text-[15px]">👩</span>
         <div className="flex-1">
-          <p className="text-[16px] font-semibold text-[#1a1a1a]">딸 지영</p>
-          <p className="flex items-center gap-1 text-[12px] text-[#37ceff]">
+          <p className="text-[16px] font-semibold text-[#1a1a1a]">윤정아님 (어머니)</p>
+          <p className="flex items-center gap-1 text-[12px] text-remine-blue">
             <span className="size-1.5 rounded-full bg-remine-blue" /> 온라인
           </p>
         </div>
-        <Link to="/parent/family/call" className="text-xl">
+        <Link to="/child/family/call" className="text-xl">
           📞
         </Link>
       </div>
@@ -80,11 +79,11 @@ export default function ParentMessage() {
         {messages.map((m, i) => (
           <div key={i} className={`flex items-end gap-2 ${m.from === 'me' ? 'flex-row-reverse' : ''}`}>
             {m.from === 'them' && (
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#fff7cc] text-[12px]">👧</span>
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#fff7cc] text-[12px]">👩</span>
             )}
             <div
               className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-[15px] leading-[1.4] ${
-                m.from === 'me' ? 'bg-remine-pink text-white' : 'bg-[#f2f2ee] text-[#1a1a1a]'
+                m.from === 'me' ? 'bg-remine-blue text-white' : 'bg-[#f2f2ee] text-[#1a1a1a]'
               }`}
             >
               {m.text}
