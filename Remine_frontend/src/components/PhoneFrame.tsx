@@ -13,8 +13,8 @@ type PhoneFrameProps = {
 // `position: fixed`, which some mobile browsers shift during scroll.
 export default function PhoneFrame({ children }: PhoneFrameProps) {
   return (
-    <div className="sm:flex sm:min-h-screen sm:items-center sm:justify-center sm:bg-[#e7e7e2] sm:py-10">
-      <div className="relative mx-auto h-dvh w-full overflow-hidden bg-remine-bg sm:h-[852px] sm:w-[393px] sm:rounded-[54px] sm:border-[12px] sm:border-[#111214] sm:shadow-[0_30px_70px_rgba(0,0,0,0.3)]">
+    <div className="sm:flex sm:h-dvh sm:items-center sm:justify-center sm:bg-[#e7e7e2] sm:p-10">
+      <div className="relative mx-auto h-dvh w-full overflow-hidden bg-remine-bg sm:h-[min(852px,100%)] sm:w-[393px] sm:rounded-[54px] sm:border-[12px] sm:border-[#111214] sm:shadow-[0_30px_70px_rgba(0,0,0,0.3)]">
         <div className="pointer-events-none absolute left-1/2 top-0 z-30 hidden h-[30px] w-[126px] -translate-x-1/2 rounded-b-[18px] bg-[#111214] sm:block" />
         <div className="pointer-events-none absolute -left-[14px] top-[112px] hidden h-[26px] w-[3px] rounded-l bg-[#111214] sm:block" />
         <div className="pointer-events-none absolute -left-[14px] top-[152px] hidden h-[44px] w-[3px] rounded-l bg-[#111214] sm:block" />
