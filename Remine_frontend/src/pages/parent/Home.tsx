@@ -22,7 +22,7 @@ const ACTIVITIES = [
 
 export default function ParentHome() {
   return (
-    <div className="relative h-full min-h-[874px] w-full bg-remine-bg">
+    <div className="relative min-h-screen w-full bg-remine-bg">
       <div className="flex items-center justify-between px-5 pb-2 pt-[62px]">
         <div className="flex h-9 flex-1 items-center gap-2 rounded-xl bg-[#f2f2ee] px-3.5">
           <span className="size-2 shrink-0 rounded-sm bg-remine-pink" />

@@ -15,9 +15,9 @@ export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
   const accentColor = ROLE_COLOR[role]
 
   return (
-    <div className="relative h-full min-h-[874px] w-full bg-remine-bg">
+    <div className="relative min-h-screen w-full bg-remine-bg">
       <StepNav onBack={onBack} />
-      <div className="flex flex-col items-center px-6 pt-8 text-center">
+      <div className="flex flex-col items-center px-6 pb-32 pt-8 text-center">
         <div
           className="mb-6 flex size-20 items-center justify-center rounded-[28px] text-3xl"
           style={{ backgroundColor: `${accentColor}17` }}

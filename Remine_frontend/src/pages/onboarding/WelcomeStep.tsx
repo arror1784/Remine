@@ -8,7 +8,7 @@ type WelcomeStepProps = {
 
 export default function WelcomeStep({ onNext }: WelcomeStepProps) {
   return (
-    <div className="relative flex h-full min-h-[874px] w-full flex-col items-center justify-center bg-remine-bg px-6">
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center bg-remine-bg px-6">
       <div className="absolute left-1/2 top-1/2 flex w-[245px] -translate-x-1/2 -translate-y-1/2 flex-col items-start gap-6">
         <div className="relative inline-grid grid-cols-[max-content] grid-rows-[max-content] place-items-start">
           <div className="col-start-1 row-start-1 h-[49.745px] w-[161.356px]">

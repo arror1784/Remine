@@ -6,7 +6,7 @@ import Placeholder from '@/components/Placeholder'
 
 function App() {
   return (
-    <div className="relative w-[402px] max-w-full min-h-[874px] overflow-hidden bg-remine-bg shadow-2xl sm:rounded-[48px]">
+    <div className="relative mx-auto min-h-screen w-full max-w-[480px] bg-remine-bg">
       <Routes>
         <Route path="/" element={<Splash />} />
         <Route path="/onboarding" element={<OnboardingFlow />} />

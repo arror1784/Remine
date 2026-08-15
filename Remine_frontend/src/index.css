@@ -10,22 +10,9 @@
   --color-dark: #1a1a1a;
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
-
 body {
   margin: 0;
   font-family: 'Pretendard', system-ui, sans-serif;
-  background: #e8e8e3;
+  background: var(--color-bg);
   color: var(--color-text);
-}
-
-#root {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100dvh;
 }

@@ -24,9 +24,9 @@ export default function StepLayout({
   footer,
 }: StepLayoutProps) {
   return (
-    <div className="relative h-full min-h-[874px] w-full bg-remine-bg">
+    <div className="relative min-h-screen w-full bg-remine-bg">
       <StepNav onBack={onBack} onSkip={onSkip} />
-      <div className="flex flex-col items-start px-6 pb-12 pt-8">
+      <div className="flex flex-col items-start px-6 pb-32 pt-8">
         <div className="w-full pb-8">
           <ProgressDots total={4} current={dotIndex} accentColor={accentColor} />
         </div>
