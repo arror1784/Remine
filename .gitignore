@@ -1,0 +1,10 @@
+# OS
+.DS_Store
+
+# Editor / local tooling state
+.claude/settings.local.json
+.omc/
+
+# Env files
+.env
+.env.local
