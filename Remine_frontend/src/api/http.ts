@@ -1,6 +1,17 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
 
+export interface ApiEnvelope<T> {
+  data: T | null
+  error: { code: string; message: string } | null
+}
+
+export function unwrap<T>(envelope: ApiEnvelope<T>): T {
+  if (envelope.error) throw new Error(envelope.error.message)
+  if (!envelope.data) throw new Error('Empty response')
+  return envelope.data
+}
+
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
 })

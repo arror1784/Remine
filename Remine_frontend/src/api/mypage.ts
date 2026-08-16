@@ -1,9 +1,4 @@
-import { http } from '@/api/http'
-
-interface ApiEnvelope<T> {
-  data: T | null
-  error: { code: string; message: string } | null
-}
+import { http, type ApiEnvelope, unwrap } from '@/api/http'
 
 export interface MyPageStats {
   streakDays: number
@@ -17,12 +12,6 @@ export interface WeeklyPatternDay {
   statDate: string
   steps: number
   isToday: boolean
-}
-
-function unwrap<T>(envelope: ApiEnvelope<T>): T {
-  if (envelope.error) throw new Error(envelope.error.message)
-  if (!envelope.data) throw new Error('Empty response')
-  return envelope.data
 }
 
 export async function getMyPageStats(): Promise<MyPageStats> {

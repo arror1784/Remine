@@ -1,10 +1,5 @@
-import { http } from '@/api/http'
+import { http, type ApiEnvelope, unwrap } from '@/api/http'
 import type { Role } from '@/store/auth'
-
-interface ApiEnvelope<T> {
-  data: T | null
-  error: { code: string; message: string } | null
-}
 
 interface DemoLoginResponse {
   userId: string
@@ -23,12 +18,6 @@ interface SignUpResponse {
   userId: string
   inviteCode: string | null
   accessToken: string
-}
-
-function unwrap<T>(envelope: ApiEnvelope<T>): T {
-  if (envelope.error) throw new Error(envelope.error.message)
-  if (!envelope.data) throw new Error('Empty response')
-  return envelope.data
 }
 
 export async function demoLogin(role: Role): Promise<{
