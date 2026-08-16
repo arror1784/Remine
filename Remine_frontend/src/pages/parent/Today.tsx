@@ -40,8 +40,8 @@ export default function ParentToday() {
       </div>
 
       <div className="flex flex-col gap-7 px-5 pb-8">
-        <div className="flex flex-col gap-1.5">
-          <p className="text-[15px] text-remine-muted">2026년 8월 11일 화요일</p>
+        <div className="flex flex-col gap-1">
+          <p className="text-[16px] text-remine-muted">2026년 8월 11일 화요일</p>
           <h2 className="text-[23px] font-semibold text-remine-dark">전반적으로 안정된 하루예요 🙂</h2>
           <p className="pt-1 text-[16px] leading-[1.5] text-remine-subtle">수면과 활동이 평소와 비슷해요. 활동량이 조금 적으니 오후에 가볍게 움직여 보세요.</p>
         </div>

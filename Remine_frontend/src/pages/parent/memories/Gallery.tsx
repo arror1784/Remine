@@ -22,8 +22,8 @@ export default function MemoryGallery() {
 
       <div className="flex items-center justify-between px-5 py-3.5">
         <h1 className="text-[22px] font-semibold text-remine-dark">추억 갤러리</h1>
-        <button type="button" className="h-[38px] rounded-full bg-remine-pink px-4 text-[15px] font-semibold text-white">
-          ＋ 추억 추가
+        <button type="button" className="flex h-[38px] items-center justify-center rounded-full bg-remine-pink px-4 text-[15px] font-semibold text-white">
+          ＋ 사진 추가
         </button>
       </div>
 
@@ -66,9 +66,9 @@ export default function MemoryGallery() {
 
         <button
           type="button"
-          className="flex h-14 items-center justify-center gap-1.5 rounded-2xl border border-dashed border-remine-highlight bg-white text-[17px] font-semibold text-remine-dark"
+          className="flex h-[52px] items-center justify-center gap-2 rounded-2xl bg-remine-dark text-[16px] font-semibold text-white"
         >
-          <span className="text-remine-pink">＋</span> 새 추억 사진 추가하기
+          📷 새 추억 사진 추가하기
         </button>
       </div>
     </Screen>

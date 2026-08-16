@@ -38,7 +38,7 @@ export default function ChildHome() {
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
-      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} dark />
+      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} />
 
       <div className="flex items-center justify-between px-5 py-3.5">
         <span className="text-[19px] font-semibold text-remine-dark">
@@ -48,7 +48,7 @@ export default function ChildHome() {
           <Link to="/child/notifications" state={{ backgroundLocation: location }} className="relative flex items-start p-1">
             <BellIcon className="size-6 text-remine-dark" />
             {unreadCount > 0 && (
-              <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-pink" />
+              <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-blue" />
             )}
           </Link>
           <Link to="/child/mypage" className="flex size-9 items-center justify-center rounded-full bg-remine-highlight text-[14px]">
@@ -57,13 +57,17 @@ export default function ChildHome() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6 px-5 pb-8">
+      <div className="flex flex-col gap-7 px-5 pb-8">
         <div className="flex flex-col gap-1">
           <p className="text-[16px] text-remine-muted">2026년 8월 11일 화요일</p>
-          <h1 className="text-[25px] font-semibold text-remine-dark">안녕하세요, 지영님 👋</h1>
+          <h1 className="text-[26px] font-semibold leading-[1.3] text-remine-dark">
+            좋은 아침이에요,
+            <br />
+            지영님 👋
+          </h1>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-remine-surfaceDark p-6">
+        <div className="relative overflow-hidden rounded-3xl bg-remine-surfaceDark px-6 py-7">
           <div aria-hidden className="absolute -right-5 -top-7 size-[120px] rounded-full bg-remine-blue opacity-10 blur-[18px]" />
           <div aria-hidden className="absolute -bottom-5 left-5 size-20 rounded-full bg-remine-pink opacity-10 blur-[14px]" />
           <div className="flex items-center gap-3.5">
@@ -94,12 +98,13 @@ export default function ChildHome() {
           </div>
         </div>
 
-        <div className="flex gap-3 rounded-[20px] bg-remine-highlight px-5 py-4">
-          <span className="mt-0.5 size-2 shrink-0 rounded-sm bg-remine-pink" />
-          <div>
-            <p className="text-[15px] font-semibold text-remine-dark">오늘 외출이 평소보다 적어요</p>
-            <p className="pt-1 text-[14px] leading-[1.5] text-remine-subtle">어머니가 오늘 아직 외출을 못 하셨어요. 가벼운 산책을 권해드려 보세요.</p>
+        <div className="flex flex-col gap-2 rounded-[20px] bg-remine-highlight px-5 pb-5 pt-6">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-sm bg-remine-blue" />
+            <span className="text-[13px] font-semibold tracking-wide text-remine-dark">상태 알림</span>
           </div>
+          <p className="pt-1 text-[20px] font-semibold text-remine-dark">오늘 외출이 평소보다 적어요</p>
+          <p className="text-[15px] leading-[1.5] text-remine-subtle">어머니가 오늘 아직 외출을 못 하셨어요. 가벼운 산책을 권해드려 보세요.</p>
         </div>
 
         <div className="flex flex-col gap-1">

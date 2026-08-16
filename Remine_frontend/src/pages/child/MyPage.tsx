@@ -7,9 +7,9 @@ import { useAuthStore } from '@/store/auth'
 import { COLORS } from '@/theme'
 
 const INFO_ITEMS = [
-  { title: '앱 버전', value: 'v1.0.0' },
-  { title: '개인정보 처리방침' },
-  { title: '서비스 이용약관' },
+  { emoji: '📋', title: '이용약관' },
+  { emoji: '📄', title: '개인정보 처리방침' },
+  { emoji: 'ℹ️', title: '버전 정보', value: 'v1.0.0' },
 ]
 
 export default function ChildMyPage() {
@@ -52,15 +52,21 @@ export default function ChildMyPage() {
   }
 
   const monthStats = [
-    { value: summary ? `${summary.sharedPhotoCount}장` : '—', label: '추가한 사진' },
-    { value: summary ? `${summary.messageCount}개` : '—', label: '보낸 메시지' },
-    { value: summary ? `${summary.callCount}회` : '—', label: '전화 통화' },
+    { value: summary ? `${summary.sharedPhotoCount}장` : '—', label: '추가한 사진', color: 'text-remine-blue' },
+    { value: summary ? `${summary.messageCount}개` : '—', label: '보낸 메시지', color: 'text-remine-pink' },
+    { value: summary ? `${summary.callCount}회` : '—', label: '전화 통화', color: 'text-remine-orange' },
   ]
 
   const accountItems = [
-    { title: '부모님 초대 코드 확인', value: paired?.inviteCode ?? '—' },
-    { title: '다른 가족 초대하기' },
-    { title: '연결된 부모님 변경' },
+    { emoji: '🔑', title: '부모님 초대 코드 확인', value: paired?.inviteCode ?? '—' },
+    { emoji: '👥', title: '다른 가족 초대하기' },
+    { emoji: '🔄', title: '연결된 부모님 변경' },
+  ]
+
+  const alertItems = [
+    { emoji: '🔔', key: 'status' as const, label: '어머니 상태 변화 알림' },
+    { emoji: '💬', key: 'message' as const, label: '가족 메시지 알림' },
+    { emoji: '📊', key: 'weekly' as const, label: '주간 요약 리포트' },
   ]
 
   return (
@@ -77,14 +83,15 @@ export default function ChildMyPage() {
       </div>
 
       <div className="flex flex-col gap-6 px-5 pb-10 pt-5">
-        <div className="rounded-3xl bg-remine-surfaceDark p-6">
-          <div className="flex items-center gap-3.5">
-            <div className="flex size-14 items-center justify-center rounded-full bg-remine-highlight text-xl">👧</div>
-            <div>
-              <p className="flex items-center gap-1.5 text-[19px] font-semibold text-white">
-                {loading ? '불러오는 중...' : profile ? `${profile.name}님` : '자녀'} ✏️
+        <div className="relative overflow-hidden rounded-3xl bg-remine-surfaceDark p-6">
+          <div aria-hidden className="absolute -right-5 -top-5 size-[100px] rounded-full bg-remine-blue opacity-10 blur-[15px]" />
+          <div className="flex items-center gap-4">
+            <div className="flex size-[68px] items-center justify-center rounded-full border-2 border-remine-blue bg-remine-highlight text-2xl">👧</div>
+            <div className="flex flex-1 flex-col gap-1">
+              <p className="text-[20px] font-semibold text-white">
+                {loading ? '불러오는 중...' : profile ? `${profile.name}님` : '자녀'}
               </p>
-              <p className="flex items-center gap-1.5 pt-0.5 text-[13px] text-white/45">
+              <p className="flex items-center gap-1.5 text-[13px] text-white/45">
                 <span className="size-1.5 rounded-full bg-remine-blue" /> 자녀 모드
               </p>
             </div>
@@ -114,8 +121,8 @@ export default function ChildMyPage() {
 
         <div className="grid grid-cols-3 gap-2.5">
           {monthStats.map((s) => (
-            <div key={s.label} className="flex flex-col items-center gap-1 rounded-2xl border border-remine-border bg-white py-4">
-              <span className="text-[20px] font-semibold text-remine-dark">{s.value}</span>
+            <div key={s.label} className="flex flex-col items-center gap-1 rounded-[20px] border border-remine-border bg-white py-4">
+              <span className={`text-[20px] font-semibold ${s.color}`}>{s.value}</span>
               <span className="text-[12px] text-remine-muted">{s.label}</span>
             </div>
           ))}
@@ -123,13 +130,10 @@ export default function ChildMyPage() {
 
         <div className="flex flex-col overflow-hidden rounded-[20px] bg-white">
           <p className="px-5 pb-2 pt-4 text-[12px] font-semibold tracking-wide text-remine-muted">알림 설정</p>
-          {[
-            { key: 'status' as const, label: '어머니 상태 변화 알림' },
-            { key: 'message' as const, label: '가족 메시지 알림' },
-            { key: 'weekly' as const, label: '주간 요약 리포트' },
-          ].map((row, i) => (
-            <div key={row.key} className={`flex items-center justify-between px-5 py-3.5 ${i > 0 ? 'border-t border-remine-surfaceAlt' : ''}`}>
-              <span className="text-[16px] text-remine-dark">{row.label}</span>
+          {alertItems.map((row, i) => (
+            <div key={row.key} className={`flex items-center gap-3.5 px-5 py-3.5 ${i > 0 ? 'border-t border-remine-surfaceAlt' : ''}`}>
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-remine-surface text-[15px]">{row.emoji}</div>
+              <span className="flex-1 text-[16px] font-medium text-remine-dark">{row.label}</span>
               <button
                 type="button"
                 onClick={() => setAlerts((a) => ({ ...a, [row.key]: !a[row.key] }))}
@@ -148,9 +152,13 @@ export default function ChildMyPage() {
         <div className="flex flex-col overflow-hidden rounded-[20px] bg-white">
           <p className="px-5 pb-2 pt-4 text-[12px] font-semibold tracking-wide text-remine-muted">계정</p>
           {accountItems.map((item, i) => (
-            <div key={item.title} className={`flex items-center justify-between px-5 py-3.5 ${i > 0 ? 'border-t border-remine-surfaceAlt' : ''}`}>
-              <span className="text-[16px] font-medium text-remine-dark">{item.title}</span>
-              {item.value ? <span className="text-[14px] text-remine-muted">{item.value}</span> : <span className="text-remine-offline">›</span>}
+            <div key={item.title} className={`flex items-center gap-3.5 px-5 py-3.5 ${i > 0 ? 'border-t border-remine-surfaceAlt' : ''}`}>
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-remine-surface text-[15px]">{item.emoji}</div>
+              <div className="flex flex-1 flex-col">
+                <span className="text-[16px] font-medium text-remine-dark">{item.title}</span>
+                {item.value && <span className="text-[13px] text-remine-muted">{item.value}</span>}
+              </div>
+              <span className="text-remine-offline">›</span>
             </div>
           ))}
         </div>
@@ -158,9 +166,10 @@ export default function ChildMyPage() {
         <div className="flex flex-col overflow-hidden rounded-[20px] bg-white">
           <p className="px-5 pb-2 pt-4 text-[12px] font-semibold tracking-wide text-remine-muted">앱 정보</p>
           {INFO_ITEMS.map((item, i) => (
-            <div key={item.title} className={`flex items-center justify-between px-5 py-3.5 ${i > 0 ? 'border-t border-remine-surfaceAlt' : ''}`}>
-              <span className="text-[16px] font-medium text-remine-dark">{item.title}</span>
-              {item.value ? <span className="text-[14px] text-remine-muted">{item.value}</span> : <span className="text-remine-offline">›</span>}
+            <div key={item.title} className={`flex items-center gap-3.5 px-5 py-3.5 ${i > 0 ? 'border-t border-remine-surfaceAlt' : ''}`}>
+              <div className="flex size-11 items-center justify-center rounded-2xl bg-remine-surface text-[15px]">{item.emoji}</div>
+              <span className="flex-1 text-[16px] font-medium text-remine-dark">{item.title}</span>
+              {item.value && <span className="text-[14px] text-remine-muted">{item.value}</span>}
             </div>
           ))}
         </div>

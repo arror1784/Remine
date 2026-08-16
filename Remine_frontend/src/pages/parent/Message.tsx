@@ -105,7 +105,7 @@ export default function ParentMessage() {
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder="직접 입력..."
+                placeholder="메시지 입력..."
                 className="h-12 min-w-0 flex-1 rounded-full bg-remine-surface px-4 text-[15px] focus:outline-none"
               />
               <button type="submit" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-remine-pink text-white">

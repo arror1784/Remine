@@ -74,14 +74,13 @@ export default function ParentHome() {
               {WEEK_PATTERN.map(({ day, height, today }) => (
                 <div key={day} className="flex w-10 flex-col items-center gap-1.5">
                   <div
-                    className="h-8 w-full rounded"
+                    className={`w-full rounded ${today ? 'bg-remine-pink' : 'bg-remine-blue/20'}`}
                     style={{
-                      backgroundColor: today ? COLORS.pink : 'rgba(55,206,255,0.18)',
                       height: `${height}px`,
                       alignSelf: 'flex-end',
                     }}
                   />
-                  <span className="text-[10px]" style={{ color: today ? COLORS.pink : 'rgba(255,255,255,0.28)' }}>
+                  <span className={`text-[10px] ${today ? 'text-remine-pink' : 'text-white/30'}`}>
                     {day}
                   </span>
                 </div>

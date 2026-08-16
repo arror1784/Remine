@@ -311,7 +311,7 @@ export default function ParentFamily() {
             </div>
 
             <div className="flex flex-col gap-3">
-              <p className="text-[16.9px] font-semibold text-remine-dark">가족에게 메시지 남기기</p>
+              <h2 className="text-[18px] font-semibold text-remine-dark">가족에게 메시지 남기기</h2>
               <textarea
                 ref={textareaRef}
                 value={draft}

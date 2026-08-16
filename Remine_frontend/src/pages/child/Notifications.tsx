@@ -17,7 +17,7 @@ export default function ChildNotifications() {
     <BottomSheet>
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-[20px] font-semibold text-remine-dark">
-          지영님 알림
+          알림
           {unreadCount > 0 && (
             <span className="flex size-5 items-center justify-center rounded-full bg-remine-blue text-[11px] font-semibold text-white">
               {unreadCount}

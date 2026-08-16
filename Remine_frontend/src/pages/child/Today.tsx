@@ -27,29 +27,34 @@ export default function ChildToday() {
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
-      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} dark />
+      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} />
 
-      <div className="px-5 py-3.5">
-        <h1 className="text-[22px] font-semibold text-remine-dark">어머니 오늘</h1>
+      <div className="flex items-center gap-2 px-5 py-3.5">
+        <h1 className="text-[22px] font-semibold text-remine-dark">어머니의 오늘</h1>
+        <span className="flex items-center gap-1.5 rounded-full bg-remine-surface px-3 py-1.5 text-[13px] font-semibold text-remine-dark">
+          <span className="size-1.5 rounded-full bg-remine-blue" />
+          실시간 모니터링
+        </span>
       </div>
 
-      <div className="flex flex-col gap-6 px-5 pb-8">
-        <div className="flex flex-col gap-2 rounded-3xl bg-remine-surfaceDark px-6 py-[22px]">
-          <p className="text-[13px] text-white/40">2026년 8월 11일 화요일</p>
-          <p className="text-[22px] font-semibold text-white">오늘 1/4 완료됐어요</p>
-          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+      <div className="flex flex-col gap-7 px-5 pb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-remine-surfaceDark px-6 py-7">
+          <div aria-hidden className="absolute -right-5 -top-7 size-[120px] rounded-full bg-remine-blue opacity-10 blur-[18px]" />
+          <p className="text-[13px] tracking-wide text-white/40">오늘의 활동 달성</p>
+          <p className="pb-1 pt-1 text-[24px] font-semibold leading-[1.3] text-white">오늘 1/4 완료됐어요 🌿</p>
+          <div className="my-3 h-2 overflow-hidden rounded-full bg-white/15">
             <div className="h-full w-1/4 rounded-full bg-remine-blue" />
           </div>
-          <p className="text-[13px] text-white/40">3가지 활동이 아직 남았어요</p>
+          <p className="text-[14px] text-white/50">3가지 활동이 아직 남았어요.</p>
         </div>
 
         <div className="flex flex-col gap-2.5">
-          <h2 className="pb-1 text-[18px] font-semibold text-remine-dark">활동 체크리스트</h2>
+          <h2 className="pb-1 text-[20px] font-semibold text-remine-dark">활동 체크리스트</h2>
           {CHECKLIST.map((item) => {
             const cheered = cheeredIds.includes(item.id)
             return (
-              <div key={item.id} className="flex items-center gap-3.5 rounded-2xl border border-remine-border bg-white px-[18px] py-4">
-                <div className="flex size-11 items-center justify-center rounded-2xl text-[17px]" style={{ backgroundColor: item.bg }}>
+              <div key={item.id} className="flex items-center gap-3.5 rounded-[20px] border border-remine-border bg-white px-5 py-4">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl text-[17px]" style={{ backgroundColor: item.bg }}>
                   {item.emoji}
                 </div>
                 <div className="flex flex-1 flex-col gap-0.5">
@@ -71,7 +76,7 @@ export default function ChildToday() {
                     type="button"
                     onClick={() => sendCheer(item.id)}
                     disabled={cheered}
-                    className="h-[34px] shrink-0 rounded-[10px] px-3 text-[13px] font-semibold disabled:text-remine-muted"
+                    className="h-[34px] shrink-0 rounded-xl px-3.5 text-[13px] font-semibold disabled:text-remine-muted"
                     style={{ backgroundColor: cheered ? COLORS.surface : COLORS.highlight, color: cheered ? undefined : COLORS.dark }}
                   >
                     {cheered ? '보냈어요 ✓' : '응원 보내기'}
@@ -83,7 +88,7 @@ export default function ChildToday() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold text-remine-dark">오늘의 타임라인</h2>
+          <h2 className="text-[20px] font-semibold text-remine-dark">오늘의 타임라인</h2>
           <div className="flex flex-col gap-[18px] rounded-[20px] border border-remine-border bg-white px-5 py-[18px]">
             {TIMELINE.map((t, i) => (
               <div key={t.time} className="relative flex gap-4">

@@ -23,7 +23,7 @@ export default function AddMemoryPhoto() {
       <div className="flex flex-col gap-5">
         <button
           type="button"
-          className="flex flex-col items-center gap-1.5 rounded-2xl border-2 border-dashed border-remine-pink bg-remine-highlight py-8"
+          className="flex flex-col items-center gap-1.5 rounded-2xl border-2 border-dashed border-remine-blue bg-remine-highlightBlue py-8"
         >
           <span className="text-2xl">📷</span>
           <span className="text-[16px] font-semibold text-remine-dark">사진 선택하기</span>
