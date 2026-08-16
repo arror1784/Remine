@@ -9,6 +9,7 @@ interface ApiEnvelope<T> {
 interface DemoLoginResponse {
   userId: string
   role: 'PARENT' | 'CHILD'
+  name: string
   accessToken: string
   pairedUserId: string | null
 }
@@ -33,6 +34,7 @@ function unwrap<T>(envelope: ApiEnvelope<T>): T {
 export async function demoLogin(role: Role): Promise<{
   userId: string
   role: Role
+  name: string
   accessToken: string
   pairedUserId: string | null
 }> {

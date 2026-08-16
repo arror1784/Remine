@@ -5,6 +5,7 @@ export type Role = 'parent' | 'child'
 
 export interface DemoSession {
   userId: string
+  name: string
   accessToken: string
   pairedUserId: string | null
 }

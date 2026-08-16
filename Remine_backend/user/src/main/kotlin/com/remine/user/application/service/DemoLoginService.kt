@@ -30,6 +30,7 @@ class DemoLoginService(
         return DemoLoginCommand.Out(
             userId = user.id,
             role = user.role,
+            name = user.name,
             accessToken = jwtTokenProvider.generateToken(
                 userId = user.id,
                 role = user.role,

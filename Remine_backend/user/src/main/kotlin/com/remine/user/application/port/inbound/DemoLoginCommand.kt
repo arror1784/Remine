@@ -13,6 +13,7 @@ interface DemoLoginCommand {
     data class Out(
         val userId: UUID,
         val role: Role,
+        val name: String,
         val accessToken: String,
         val pairedUserId: UUID?,
     )

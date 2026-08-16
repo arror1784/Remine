@@ -30,6 +30,7 @@ class AuthController(
             DemoLoginResponse(
                 userId = out.userId,
                 role = out.role,
+                name = out.name,
                 accessToken = out.accessToken,
                 pairedUserId = out.pairedUserId,
             ),

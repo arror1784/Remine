@@ -54,7 +54,7 @@ export default function OnboardingFlow() {
     }
     const { userId, accessToken } = accountRef.current
     const { setSession, setActiveRole } = useAuthStore.getState()
-    setSession(role, { userId, accessToken, pairedUserId: null })
+    setSession(role, { userId, name: state.name, accessToken, pairedUserId: null })
     setActiveRole(role)
 
     const inviteCode = state.inviteCode.trim()
@@ -63,6 +63,7 @@ export default function OnboardingFlow() {
         const pairing = await pairWithInviteCode(inviteCode)
         setSession(role, {
           userId,
+          name: state.name,
           accessToken: pairing.accessToken,
           pairedUserId: pairing.parentUserId,
         })

@@ -53,6 +53,18 @@ export default function ParentMessage() {
     }
   }, [])
 
+  // No websocket/push infra exists yet, so poll for the counterpart's new
+  // messages instead of requiring a manual refresh.
+  useEffect(() => {
+    if (!paired) return
+    const interval = setInterval(() => {
+      getThread()
+        .then((thread) => setMessages(thread))
+        .catch(() => {})
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [paired])
+
   const send = async (text: string, quickReplyKey?: string) => {
     if (!text.trim()) return
     try {
