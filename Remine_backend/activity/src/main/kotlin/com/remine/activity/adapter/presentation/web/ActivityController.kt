@@ -1,6 +1,7 @@
 package com.remine.activity.adapter.presentation.web
 
 import com.remine.activity.application.port.inbound.GetChecklistQuery
+import com.remine.activity.application.port.inbound.GetDailyActivityRecommendationQuery
 import com.remine.activity.application.port.inbound.GetTimelineQuery
 import com.remine.activity.application.port.inbound.GetTodaySummaryQuery
 import com.remine.activity.application.port.inbound.GetWeeklyPatternQuery
@@ -39,6 +40,7 @@ class ActivityController(
     private val getWeeklyPatternQuery: GetWeeklyPatternQuery,
     private val getChecklistQuery: GetChecklistQuery,
     private val getTimelineQuery: GetTimelineQuery,
+    private val getDailyActivityRecommendationQuery: GetDailyActivityRecommendationQuery,
 ) {
 
     @PostMapping
@@ -116,6 +118,16 @@ class ActivityController(
                 socialPercent = out.socialPercent,
             )
         )
+    }
+
+    @GetMapping("/recommendation")
+    fun getDailyRecommendation(
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+    ): ApiResponse<DailyActivityRecommendationResponse> {
+        val out = getDailyActivityRecommendationQuery.handle(
+            GetDailyActivityRecommendationQuery.In(userId = principal.parentUserId())
+        )
+        return ApiResponse.ok(DailyActivityRecommendationResponse.from(out.recommendation))
     }
 
     @GetMapping("/weekly")
