@@ -6,6 +6,8 @@ import ProfileStep from '@/pages/onboarding/ProfileStep'
 import DetailStep from '@/pages/onboarding/DetailStep'
 import DoneStep from '@/pages/onboarding/DoneStep'
 import type { OnboardingState, Role } from '@/pages/onboarding/types'
+import { signUp } from '@/api/auth'
+import { useAuthStore } from '@/store/auth'
 
 const STEP_COUNT = 5
 
@@ -32,6 +34,21 @@ export default function OnboardingFlow() {
     }))
 
   const selectRole = (role: Role) => setState((s) => ({ ...s, role }))
+
+  const finish = async () => {
+    const role = state.role
+    if (!role) return
+    const { userId, accessToken } = await signUp({
+      role,
+      name: state.name,
+      ageGroup: state.ageGroup ?? '기타',
+      interests: state.interests,
+    })
+    const { setSession, setActiveRole } = useAuthStore.getState()
+    setSession(role, { userId, accessToken, pairedUserId: null })
+    setActiveRole(role)
+    navigate(`/${role}/home`)
+  }
 
   switch (step) {
     case 0:
@@ -67,7 +84,7 @@ export default function OnboardingFlow() {
         />
       )
     case 4:
-      return <DoneStep state={state} onBack={goBack} onFinish={() => navigate(`/${state.role}/home`)} />
+      return <DoneStep state={state} onBack={goBack} onFinish={finish} />
     default:
       return null
   }

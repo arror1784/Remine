@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Screen from '@/components/Screen'
 import StepNav from '@/components/StepNav'
 import PillButton from '@/components/PillButton'
@@ -7,20 +8,36 @@ import { ROLE_COLOR } from '@/pages/onboarding/types'
 type DoneStepProps = {
   state: OnboardingState
   onBack: () => void
-  onFinish: () => void
+  onFinish: () => Promise<void>
 }
 
 export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
   const { role, name, ageGroup, interests, inviteCode } = state
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   if (!role) return null
   const accentColor = ROLE_COLOR[role]
+
+  const handleFinish = async () => {
+    setSubmitting(true)
+    setError(null)
+    try {
+      await onFinish()
+    } catch {
+      setError('가입에 실패했어요. 잠시 후 다시 시도해 주세요.')
+      setSubmitting(false)
+    }
+  }
 
   return (
     <Screen
       footer={
-        <PillButton onClick={onFinish} color={accentColor}>
-          시작하기
-        </PillButton>
+        <div>
+          {error && <p className="px-6 text-center text-[13px] text-remine-pink">{error}</p>}
+          <PillButton onClick={handleFinish} disabled={submitting} color={accentColor}>
+            {submitting ? '가입 중...' : '시작하기'}
+          </PillButton>
+        </div>
       }
     >
       <StepNav onBack={onBack} />

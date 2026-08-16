@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import PhoneFrame from '@/components/PhoneFrame'
 import Splash from '@/pages/Splash'
+import Login from '@/pages/Login'
 import OnboardingFlow from '@/pages/onboarding/OnboardingFlow'
 import SwitchMode from '@/pages/SwitchMode'
 import ParentHome from '@/pages/parent/Home'
@@ -35,6 +36,7 @@ function App() {
       <div className={`h-full w-full transition-[filter] duration-200 ${backgroundLocation ? 'blur-sm pointer-events-none select-none' : ''}`}>
         <Routes location={backgroundLocation || location}>
           <Route path="/" element={<Splash />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/onboarding" element={<OnboardingFlow />} />
 
           <Route path="/parent/home" element={<ParentHome />} />
