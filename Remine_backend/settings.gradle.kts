@@ -2,6 +2,7 @@ rootProject.name = "remine-backend"
 
 include(
     "common",
+    "client-openai",
     "migration",
     "auth",
     "user",

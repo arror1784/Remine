@@ -3,6 +3,7 @@ package com.remine.memory.adapter.presentation.web
 import com.remine.auth.domain.RemineUserPrincipal
 import com.remine.common.web.ApiResponse
 import com.remine.memory.application.port.inbound.CreateMemoryQuizCommand
+import com.remine.memory.application.port.inbound.GenerateMemoryQuizCommand
 import com.remine.memory.application.port.inbound.GetMemoryGalleryQuery
 import com.remine.memory.application.port.inbound.GetMemoryQuizQuery
 import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
@@ -26,6 +27,7 @@ class MemoryController(
     private val getMemoryGalleryQuery: GetMemoryGalleryQuery,
     private val getMemoryStatsQuery: GetMemoryStatsQuery,
     private val createMemoryQuizCommand: CreateMemoryQuizCommand,
+    private val generateMemoryQuizCommand: GenerateMemoryQuizCommand,
     private val getMemoryQuizQuery: GetMemoryQuizQuery,
     private val getTodayQuizQuery: GetTodayQuizQuery,
     private val submitMemoryQuizAttemptCommand: SubmitMemoryQuizAttemptCommand,
@@ -95,6 +97,20 @@ class MemoryController(
                         correctOptionIndex = it.correctOptionIndex,
                     )
                 },
+                ownerUserId = principal.parentUserId(),
+            ),
+        )
+        return ApiResponse.ok(result.questions.map { MemoryQuizQuestionResponse.from(it) })
+    }
+
+    @PostMapping("/{id}/quiz/generate")
+    fun generateMemoryQuiz(
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+        @PathVariable id: UUID,
+    ): ApiResponse<List<MemoryQuizQuestionResponse>> {
+        val result = generateMemoryQuizCommand.handle(
+            GenerateMemoryQuizCommand.In(
+                memoryPhotoId = id,
                 ownerUserId = principal.parentUserId(),
             ),
         )

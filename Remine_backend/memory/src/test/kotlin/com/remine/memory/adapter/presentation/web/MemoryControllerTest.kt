@@ -3,6 +3,7 @@ package com.remine.memory.adapter.presentation.web
 import com.remine.auth.domain.RemineUserPrincipal
 import com.remine.auth.domain.Role
 import com.remine.memory.application.port.inbound.CreateMemoryQuizCommand
+import com.remine.memory.application.port.inbound.GenerateMemoryQuizCommand
 import com.remine.memory.application.port.inbound.GetMemoryGalleryQuery
 import com.remine.memory.application.port.inbound.GetMemoryQuizQuery
 import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
@@ -58,6 +59,7 @@ class MemoryControllerTest {
             getMemoryGalleryQuery = mockGetGalleryQuery(),
             getMemoryStatsQuery = mockGetStatsQuery(),
             createMemoryQuizCommand = mockCreateQuizCommand(),
+            generateMemoryQuizCommand = mockGenerateQuizCommand(),
             getMemoryQuizQuery = mockGetQuizQuery(),
             getTodayQuizQuery = mockGetTodayQuizQuery(),
             submitMemoryQuizAttemptCommand = mockSubmitAttemptCommand(),
@@ -104,6 +106,7 @@ class MemoryControllerTest {
             getMemoryGalleryQuery = galleryQuery,
             getMemoryStatsQuery = mockGetStatsQuery(),
             createMemoryQuizCommand = mockCreateQuizCommand(),
+            generateMemoryQuizCommand = mockGenerateQuizCommand(),
             getMemoryQuizQuery = mockGetQuizQuery(),
             getTodayQuizQuery = mockGetTodayQuizQuery(),
             submitMemoryQuizAttemptCommand = mockSubmitAttemptCommand(),
@@ -134,6 +137,7 @@ class MemoryControllerTest {
             getMemoryGalleryQuery = mockGetGalleryQuery(),
             getMemoryStatsQuery = mockGetStatsQuery(),
             createMemoryQuizCommand = mockCreateQuizCommand(),
+            generateMemoryQuizCommand = mockGenerateQuizCommand(),
             getMemoryQuizQuery = mockGetQuizQuery(),
             getTodayQuizQuery = mockGetTodayQuizQuery(),
             submitMemoryQuizAttemptCommand = submitCommand,
@@ -179,6 +183,11 @@ class MemoryControllerTest {
     private fun mockCreateQuizCommand() = object : CreateMemoryQuizCommand {
         override fun handle(command: CreateMemoryQuizCommand.In): CreateMemoryQuizCommand.Out =
             CreateMemoryQuizCommand.Out(questions = emptyList())
+    }
+
+    private fun mockGenerateQuizCommand() = object : GenerateMemoryQuizCommand {
+        override fun handle(command: GenerateMemoryQuizCommand.In): GenerateMemoryQuizCommand.Out =
+            GenerateMemoryQuizCommand.Out(questions = emptyList())
     }
 
     private fun mockGetQuizQuery() = object : GetMemoryQuizQuery {

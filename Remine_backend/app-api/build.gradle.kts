@@ -12,6 +12,7 @@ application {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":client-openai"))
     implementation(project(":migration"))
     implementation(project(":auth"))
     implementation(project(":user"))
