@@ -59,7 +59,10 @@ export default function ParentMessage() {
     if (!paired) return
     const interval = setInterval(() => {
       getThread()
-        .then((thread) => setMessages(thread))
+        .then((thread) => {
+          setMessages(thread)
+          setFailed(false)
+        })
         .catch(() => {})
     }, 4000)
     return () => clearInterval(interval)
@@ -71,6 +74,7 @@ export default function ParentMessage() {
       const sent = await sendMessage(text.trim(), quickReplyKey)
       setMessages((prev) => [...prev, sent])
       setDraft('')
+      setFailed(false)
     } catch {
       setFailed(true)
     }
