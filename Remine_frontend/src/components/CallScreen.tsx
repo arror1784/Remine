@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { endCall, startCall } from '@/api/call'
 
 type CallScreenProps = {
   name: string
@@ -15,6 +16,35 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
   const navigate = useNavigate()
   const [state, setState] = useState<CallState>('connecting')
   const [seconds, setSeconds] = useState(0)
+  const callIdRef = useRef<string | null>(null)
+  const endedRef = useRef(false)
+
+  const finishCall = useCallback(() => {
+    const id = callIdRef.current
+    if (!id || endedRef.current) return
+    endedRef.current = true
+    endCall(id).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    startCall()
+      .then((call) => {
+        // Unmounted before the call was registered — close it right away.
+        if (cancelled) {
+          endCall(call.id).catch(() => {})
+          return
+        }
+        callIdRef.current = call.id
+      })
+      .catch(() => {
+        if (!cancelled) navigate(backTo)
+      })
+    return () => {
+      cancelled = true
+      finishCall()
+    }
+  }, [backTo, navigate, finishCall])
 
   useEffect(() => {
     if (state !== 'connecting') return
@@ -30,9 +60,10 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
 
   useEffect(() => {
     if (state !== 'ended') return
+    finishCall()
     const toBack = setTimeout(() => navigate(backTo), 1500)
     return () => clearTimeout(toBack)
-  }, [state, backTo, navigate])
+  }, [state, backTo, navigate, finishCall])
 
   const mm = String(Math.floor(seconds / 60)).padStart(2, '0')
   const ss = String(seconds % 60).padStart(2, '0')
@@ -40,7 +71,7 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
   const hangUp = () => setState('ended')
 
   return (
-    <div className="flex h-full min-h-[600px] flex-col items-center justify-between bg-gradient-to-b from-[#0d0d14] to-[#1a1224] px-6 pb-10 pt-16">
+    <div className="flex h-full min-h-[600px] flex-col items-center justify-between bg-gradient-to-b from-remine-nearBlack2 to-remine-deepPurple px-6 pb-10 pt-16">
       <div className="flex flex-col items-center gap-1">
         {state === 'connecting' && <p className="text-[14px] text-white/50">전화 연결 중...</p>}
         {state === 'connected' && (
@@ -62,7 +93,7 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
             </>
           )}
           <div
-            className="flex size-[110px] items-center justify-center rounded-full border-2 bg-[#fff7cc] text-4xl"
+            className="flex size-[110px] items-center justify-center rounded-full border-2 bg-remine-highlight text-4xl"
             style={{ borderColor: accentColor }}
           >
             {emoji}
@@ -83,7 +114,7 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
           <button
             type="button"
             onClick={hangUp}
-            className="flex size-16 items-center justify-center rounded-full bg-[#e5493f] text-2xl text-white shadow-[0_0_20px_rgba(229,73,63,0.5)]"
+            className="flex size-16 items-center justify-center rounded-full bg-remine-dangerStrong text-2xl text-white shadow-[0_0_20px_rgba(229,73,63,0.5)]"
           >
             📞
           </button>
