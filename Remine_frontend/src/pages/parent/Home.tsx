@@ -7,6 +7,7 @@ import { BellIcon } from '@/components/icons/NavIcons'
 import { useNotificationStore } from '@/store/notifications'
 import familyPhoto from '@/assets/memories/family-trip.png'
 import { getRecommendation, getTodaySummary, type ActivityActionType, type ActivityRecommendation, type TodaySummary } from '@/api/activity'
+import { getTodayQuiz, type TodayQuiz } from '@/api/memory'
 import { COLORS } from '@/theme'
 
 const ACTION_CTA: Record<Exclude<ActivityActionType, 'NONE'>, { label: string; to: string }> = {
@@ -60,6 +61,7 @@ export default function ParentHome() {
   const unreadCount = useNotificationStore((state) => state.parentNotifications.filter((n) => n.unread).length)
   const [recommendation, setRecommendation] = useState<ActivityRecommendation | null>(null)
   const [summary, setSummary] = useState<TodaySummary | null>(null)
+  const [todayQuiz, setTodayQuiz] = useState<TodayQuiz | null>(null)
 
   useEffect(() => {
     let active = true
@@ -71,6 +73,11 @@ export default function ParentHome() {
     getTodaySummary()
       .then((data) => {
         if (active) setSummary(data)
+      })
+      .catch(() => {})
+    getTodayQuiz()
+      .then((data) => {
+        if (active) setTodayQuiz(data)
       })
       .catch(() => {})
     return () => {
@@ -192,20 +199,32 @@ export default function ParentHome() {
         <div className="flex flex-col gap-4">
           <h2 className="text-[20px] font-semibold text-remine-dark">오늘의 추억</h2>
           <div className="overflow-hidden rounded-[20px] border border-remine-border bg-white">
-            <div className="h-[164px] w-full overflow-hidden bg-remine-highlight">
-              <img src={familyPhoto} alt="가족 나들이 사진" className="size-full object-cover" />
-            </div>
-            <div className="flex flex-col gap-1.5 px-5 pb-5 pt-[18px]">
-              <span className="w-fit rounded-full bg-remine-highlight px-2.5 py-0.5 text-[12px] text-remine-dark">2022년 봄</span>
-              <p className="pt-1 text-[17px] text-remine-dark">가족 여행 📸</p>
-              <p className="pb-2 text-[15px] text-remine-subtle">이 사진과 관련된 퀴즈를 풀어볼까요?</p>
-              <Link
-                to="/parent/memories/quiz"
-                className="flex h-12 items-center justify-center rounded-xl bg-remine-highlight text-[16px] font-semibold text-remine-dark"
-              >
-                추억 퀴즈 풀기
-              </Link>
-            </div>
+            {todayQuiz && !todayQuiz.photo ? (
+              <p className="px-5 py-8 text-center text-[15px] text-remine-subtle">오늘은 준비된 추억 퀴즈가 없어요</p>
+            ) : (
+              <>
+                <div className="h-[164px] w-full overflow-hidden bg-remine-highlight">
+                  <img
+                    src={todayQuiz?.photo?.photoUrl ?? familyPhoto}
+                    alt={todayQuiz?.photo?.title ?? '가족 나들이 사진'}
+                    className="size-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 px-5 pb-5 pt-[18px]">
+                  <span className="w-fit rounded-full bg-remine-highlight px-2.5 py-0.5 text-[12px] text-remine-dark">
+                    {todayQuiz?.photo?.memoryLabel ?? '2022년 봄'}
+                  </span>
+                  <p className="pt-1 text-[17px] text-remine-dark">{todayQuiz?.photo ? `${todayQuiz.photo.title} 📸` : '가족 여행 📸'}</p>
+                  <p className="pb-2 text-[15px] text-remine-subtle">이 사진과 관련된 퀴즈를 풀어볼까요?</p>
+                  <Link
+                    to="/parent/memories/quiz"
+                    className="flex h-12 items-center justify-center rounded-xl bg-remine-highlight text-[16px] font-semibold text-remine-dark"
+                  >
+                    추억 퀴즈 풀기
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

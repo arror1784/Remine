@@ -24,6 +24,22 @@ export interface DraftQuestion {
   updatedAt: string
 }
 
+export interface TodayQuizQuestion {
+  id: string
+  question: string
+  options: string[]
+}
+
+export interface TodayQuiz {
+  photo: MemoryPhoto | null
+  questions: TodayQuizQuestion[]
+}
+
+export interface QuizAttemptResult {
+  correctCount: number
+  totalCount: number
+}
+
 export interface QuizQuestion {
   id: string
   memoryPhotoId: string
@@ -58,6 +74,22 @@ export async function generateQuizQuestions(photoId: string): Promise<DraftQuest
 export async function getDraftQuestions(photoId: string): Promise<DraftQuestion[]> {
   const response = await http.get<ApiEnvelope<DraftQuestion[]>>(
     `/api/v1/memories/${photoId}/quiz/draft-questions`
+  )
+  return unwrap(response.data)
+}
+
+export async function getTodayQuiz(): Promise<TodayQuiz> {
+  const response = await http.get<ApiEnvelope<TodayQuiz>>('/api/v1/memories/quiz/today')
+  return unwrap(response.data)
+}
+
+export async function submitQuizAttempt(
+  photoId: string,
+  answers: number[]
+): Promise<QuizAttemptResult> {
+  const response = await http.post<ApiEnvelope<QuizAttemptResult>>(
+    `/api/v1/memories/${photoId}/quiz/attempts`,
+    { answers }
   )
   return unwrap(response.data)
 }

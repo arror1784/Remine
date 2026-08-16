@@ -397,6 +397,30 @@ class MemoryServicesTest {
     }
 
     @Test
+    fun `GetTodayQuizService picks the same photo on repeated calls the same day`() {
+        val service = GetTodayQuizService(photoRepository, questionRepository, attemptRepository)
+        val ownerId = UUID.randomUUID()
+        val photos = (1..5).map {
+            MemoryPhoto(
+                id = UUID.randomUUID(),
+                ownerUserId = ownerId,
+                uploadedByUserId = ownerId,
+                title = "Photo $it",
+                photoUrl = "url$it",
+                memoryLabel = "label$it",
+                status = MemoryPhotoStatus.QUIZ_ACTIVE,
+            )
+        }
+        photos.forEach { photoRepository.save(it) }
+
+        val firstCall = service.handle(GetTodayQuizQuery.In(ownerUserId = ownerId))
+        val secondCall = service.handle(GetTodayQuizQuery.In(ownerUserId = ownerId))
+
+        assertNotNull(firstCall.photo)
+        assertEquals(firstCall.photo?.id, secondCall.photo?.id)
+    }
+
+    @Test
     fun `quiz services reject a photo owned by another family`() {
         val photoId = UUID.randomUUID()
         val ownerId = UUID.randomUUID()

@@ -26,9 +26,16 @@ class GetTodayQuizService(
             status = MemoryPhotoStatus.QUIZ_ACTIVE,
         )
 
-        val qualifyingPhoto = activePhotos.firstOrNull { photo ->
+        val qualifyingPhotos = activePhotos.filter { photo ->
             !memoryQuizAttemptRepository.existsByMemoryPhotoIdAndCompletedAtGreaterThanEqual(photo.id, startOfToday)
         }
+
+        // Randomized, but stable for the day: hashing (photo id + today's date) instead of a
+        // fresh Random() pick means repeated calls today (home preview, then the quiz screen
+        // itself) land on the same photo instead of disagreeing with each other, while tomorrow
+        // the hash — and so the pick — changes.
+        val today = LocalDate.now(ZoneOffset.UTC)
+        val qualifyingPhoto = qualifyingPhotos.minByOrNull { "${it.id}-$today".hashCode() }
 
         if (qualifyingPhoto == null) {
             return GetTodayQuizQuery.Out(
