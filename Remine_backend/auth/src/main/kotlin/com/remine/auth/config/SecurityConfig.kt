@@ -4,6 +4,7 @@ import com.remine.auth.jwt.JwtAuthenticationFilter
 import com.remine.auth.jwt.JwtTokenProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -34,6 +35,12 @@ class SecurityConfig(
             .exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint).and()
             .authorizeHttpRequests { auth ->
                 auth
+                    // Spring Security's own filter chain runs before the MVC-level
+                    // CORS mapping in CorsConfig, so a browser's preflight OPTIONS
+                    // request would otherwise hit `.anyRequest().authenticated()`
+                    // and get rejected with 401 before CORS headers are ever added —
+                    // breaking every authenticated cross-origin call from the browser.
+                    .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .antMatchers("/api/v1/auth/**").permitAll()
                     .antMatchers("/api/v1/users/signup").permitAll()
                     .antMatchers("/h2-console/**").permitAll()
