@@ -28,7 +28,7 @@ Kotlin + Spring Boot, hexagonal architecture (Ports & Adapters) + CQRS, split in
 - Schema changes only via Flyway migrations (idempotent DDL, e.g. `IF NOT EXISTS`); prod runs `ddl-auto=validate`, so an entity change without a matching migration breaks boot.
 - Redis for sessions, distributed locks, and a Stream-based task queue — if this queue is shared with a Python/AI service, keep stream keys/task types/fields in sync on both sides.
 - Auth: Spring Security + JWT filter chain + Google OAuth; authorization via `@PreAuthorize` only (no hardcoded URL-path rules in filters).
-- AI/knowledge processing (search, embeddings, RAG, STT) belongs in a dedicated Python service, not reimplemented in Kotlin — the backend only proxies to it.
+- AI/knowledge processing (search, embeddings, RAG, STT) belongs in a dedicated Python service, not reimplemented in Kotlin — the backend only proxies to it. **Documented exception:** `client-openai` is a direct client for OpenAI's own Chat Completions API, not a Python-service proxy — this is an intentional, confirmed design choice for that module, not drift to fix.
 - Secrets/config via Vault injection (`${ENV}`), never hardcoded in `application.yml` or source; when removing a feature, also remove the config/Vault keys that fed it.
 - One class per file (except Command/Query `In`/`Out` inner classes).
 - HTTP verbs: create=`POST`, update=`PATCH` (never `PUT`), delete=`DELETE`, read=`GET`.
@@ -52,7 +52,7 @@ React 18 + TypeScript, Vite build (`tsc -b && vite build` — build is also the 
 
 - No DB foreign-key constraints anywhere (ID + index only).
 - Secrets/config via Vault, never hardcoded.
-- AI/knowledge processing lives in its own Python service; Kotlin backend only proxies.
+- AI/knowledge processing lives in its own Python service; Kotlin backend only proxies — except `client-openai`, which is a confirmed, documented direct OpenAI client (see backend section above).
 - Separate API namespaces for internal vs. externally-exposed vs. management-data routes.
 - Schema changes only via Flyway migration, never manual DDL.
 
