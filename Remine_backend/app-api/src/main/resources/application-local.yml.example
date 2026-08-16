@@ -1,0 +1,6 @@
+# Copy this file to `application-local.yml` (same directory) and fill in real values.
+# `application-local.yml` is gitignored — it never gets committed, and Spring merges it
+# in automatically (see application.yml's `spring.profiles.include: local`) if present.
+spring:
+  datasource:
+    password: your-h2-console-password-here

@@ -3,11 +3,21 @@ spring:
     name: remine-app-api
   profiles:
     active: dev
+    # Always merges in application-local.yml if present (gitignored) — the local-only
+    # override file for secrets like the H2 console password. Harmless if the file
+    # doesn't exist. See application-local.yml.example for the expected keys.
+    include: local
   datasource:
-    url: jdbc:h2:mem:remine;DB_CLOSE_DELAY=-1
+    # File-backed (not in-memory) so local data survives an app restart. AUTO_SERVER=TRUE
+    # lets an external GUI client (TablePlus, DBeaver, ...) connect concurrently while the
+    # app is running, using this same URL. Production still targets Postgres (see
+    # application-prod.yml) — this only affects local dev.
+    url: jdbc:h2:file:./data/remine;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
-    password:
+    # Local-only — set H2_DB_PASSWORD in your shell profile (e.g. ~/.zshrc), never here.
+    # The same value is what you type into the H2 console login (localhost:8080/h2-console).
+    password: ${H2_DB_PASSWORD:}
   h2:
     console:
       enabled: true
