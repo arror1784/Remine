@@ -4,7 +4,7 @@ Started: 2026-08-17 (KST), after a ~25min delay to land on a fresh session token
 Mode: fully autonomous — no commit/push/approval confirmations during this run, per explicit user instruction.
 Execution order: sequential (not parallel), to avoid concurrent git/build races in the same working tree.
 
-## Status: 🟡 In progress — Task 1 ✅ done, Task 2 ✅ done, Task 3 starting
+## Status: 🟡 In progress — Task 1 ✅ done, Task 2 ✅ done, Task 3 ✅ done, Task 4 starting
 
 ## Task 1 — Backend test coverage
 - Scope: `app-api`, `auth`, `user`, `common`, `client-openai`, `migration` (originally briefed as zero-test modules), following the existing hand-rolled-fake pattern used in `memory`/`family`/`message`/`call`/`notification`/`activity`.
@@ -67,8 +67,44 @@ The `ApiEnvelope`/`unwrap` consolidation (item 4) — 8 mechanical, identical ed
 
 ## Task 3 — Security review pass
 - Scope: OWASP Top 10 focus — auth/JWT, input validation, secrets handling, CORS, dependency issues.
-- Status: not started
-- Summary: _pending_
+- Status: ✅ done
+- Summary: Reviewed both sides end-to-end. Found and fixed one real authorization-boundary bug (an IDOR on call start) and one real deployment-config risk (a prod JWT secret that could silently fall back to a secret committed in this repo), plus three lower-severity input-bounds gaps. Everything else checked out clean — notably the pair-scoping across `memory`/`family`/`notification`/`message` is genuinely enforced, and no secret was ever committed.
+
+### Findings
+
+| # | Severity | Area | Description | Disposition |
+|---|----------|------|-------------|-------------|
+| 1 | **High** | Auth / config | `application.yml` defaults `jwt.secret` to `dev-only-secret-key-change-in-production-…` so local dev boots unconfigured. `application-prod.yml` never overrode it, so a prod deploy with `JWT_SECRET` unset would boot successfully and sign tokens with a secret published in this repo — anyone could forge a JWT for any `userId`/`role`/`pairedUserId` and take over every account. | **Fixed** — prod declares `jwt.secret: ${JWT_SECRET}` with no default, so a missing env var fails the boot instead of silently degrading. |
+| 2 | **Medium** | IDOR / authz | `POST /api/v1/calls` accepted a client-supplied `calleeId` that no layer validated. `CallLogJpaRepository.findHistoryByUserId` matches `callerId = :userId OR calleeId = :userId`, so a call log lands in *both* participants' history and stats — any authenticated user could plant fabricated call records in a stranger's account by posting that user's UUID. The frontend never sends the field (`call.ts` posts `{}`), so it was pure unvalidated attack surface. | **Fixed** — `StartCallService` now throws `ForbiddenException` when `calleeId != counterpartUserId`, mirroring the participant check `EndCallService` already had. Regression test added. |
+| 3 | Low | Input validation | `UpdateProfileRequest` was `@Valid`-annotated but carried no constraints at all, and `SignUpRequest` had `@NotBlank` but no `@Size`. `app_user` bounds these columns (`name` 50, `age_group` 10, `interests` 255), so oversized input became a `DataIntegrityViolationException` → generic 500 rather than a clean 400. | **Fixed** — `@Size` added on both, matched to the column widths, including per-element bounds on the comma-joined `interests` list. |
+| 4 | Low | Resource exhaustion | `limit` on `GET /messages/thread`, `GET /family/posts`, and `GET /calls` was an unbounded `Int` straight from the query string. | **Fixed** — coerced to `1..100` at the controller boundary. The frontend already requests 20/50, and `FamilySummaryController`'s internal `limit = 1000` goes through the query port directly, so neither is affected. |
+| 5 | **High if ever deployed** | Auth design | `POST /api/v1/auth/demo-login` is `permitAll` and issues a real 7-day JWT for a fixed seeded pair with **no credentials at all**. In any real deployment this is an unauthenticated token-issuance endpoint — a complete auth bypass. | **Documented** — it is explicitly intentional (see the class doc on `AuthController`) and the entire demo flow depends on it. Recommended fix when this stops being a demo: `@Profile("!prod")` on `AuthController`. Not applied autonomously because it would silently break a prod-profile demo deploy. |
+| 6 | Low | Frontend | JWTs are persisted to `localStorage` via Zustand `persist` (key `remine-auth`), so any XSS would exfiltrate a 7-day token. | **Documented** — known/accepted tradeoff for JWT-in-localStorage apps; a real fix means httpOnly cookies plus backend session changes. Mitigating factor: the XSS surface is currently empty (zero `dangerouslySetInnerHTML`, `eval`, `innerHTML`, or `new Function` anywhere in `src/`). |
+| 7 | Low | Dependencies | Spring Boot 2.7.18 is past its OSS support window (`javax.*` era); `jjwt` is 0.11.5 vs. current 0.12.x. | **Documented** — no known-exploitable CVE in the way they're used here, and a 3.x upgrade is a whole-repo `javax`→`jakarta` migration. Out of scope for a safe autonomous pass. |
+| 8 | Informational | Security headers | `SecurityConfig` disables `frameOptions()` globally (needed for the H2 console) and `permitAll`s `/h2-console/**` unconditionally. | **Documented** — `application-prod.yml` sets `spring.h2.console.enabled: false`, so the servlet isn't registered in prod and the rule 404s. Clickjacking risk on a pure-JSON API is negligible. Worth profile-gating if a browser-rendered page is ever served from this app. |
+
+### Verified clean (no action needed)
+- **Pair-scoping / IDOR elsewhere** — spot-checked `memory`, `family`, `notification`, and `message`. Every one resolves scope from the principal, never from the request: `memory` passes `principal.parentUserId()` and each service calls `requireOwnedByCaller`; `family` passes a principal-derived `pairUserIds` set and `FamilyPostService.requireOwnPair` enforces it on like/reply/read; `notification` looks up via `findByIdAndRecipientUserId` so another user's notification id returns 404, not someone else's row; `message` derives both thread participants from `requireCounterpartUserId()`. The call-start bug in finding 2 was the only place a request-supplied ID was trusted.
+- **JWT algorithm** — `parseClaimsJws` with a `SecretKey` set. `alg: none` is rejected (unsigned JWTs fail `parseClaimsJws`), and no RS256/HS256 confusion is reachable since only MAC algorithms match a `SecretKey`. Signature, expiry, and wrong-secret rejection all have passing tests.
+- **SQL injection** — zero native queries, zero `JdbcTemplate`, zero string-concatenated JPQL. All 8 `@Query` uses are parameterized JPQL with `@Param` binding.
+- **Secrets** — no real secret in the working tree (every grep hit is a test placeholder like `"test-key"`/`"stub-key"`) and none in git history across all 50 commits — every historical config hit is an env-var placeholder (`${H2_DB_PASSWORD:}`, `${OPENAI_API_KEY:}`, `${GOOGLE_OAUTH_CLIENT_SECRET:}`). `application-local.yml` (which does hold a real local H2 password) is correctly untracked and ignored via `Remine_backend/.gitignore:17`; only `application-local.yml.example` is committed, carrying the placeholder `your-h2-console-password-here`. The OpenAI key is `@Value`-injected and only ever passed to `setBearerAuth`, never logged.
+- **CORS** — `CorsConfig` allows exactly two explicit localhost origins with `allowCredentials(true)`. That combination is only invalid/dangerous with a `*` origin, which is not used here. Prod will need its real origin added.
+- **Error handling** — `GlobalExceptionHandler`'s catch-all logs the exception server-side and returns a generic `"Internal server error"`, so no stack traces or internals reach the client.
+- **Frontend dependencies** — `yarn audit`: 0 vulnerabilities across 176 packages.
+- **CSRF** — correctly disabled; auth is a stateless `Authorization` header, not a cookie, so there is nothing for CSRF to ride on.
+
+### Changed
+- `Remine_backend/app-api/src/main/resources/application-prod.yml` — `jwt.secret` with no default.
+- `Remine_backend/call/.../StartCallCommand.kt`, `StartCallService.kt`, `CallController.kt` — counterpart check on call start.
+- `Remine_backend/call/src/test/.../CallServiceTest.kt` — regression test `start call throws ForbiddenException when calleeId is not the caller's counterpart`, plus existing cases updated for the new `In` signature.
+- `Remine_backend/user/.../SignUpRequest.kt`, `UpdateProfileRequest.kt` — `@Size` bounds matched to schema.
+- `Remine_backend/message/.../MessageController.kt`, `family/.../FamilyPostController.kt`, `call/.../CallController.kt` — `limit` coerced to `1..100`.
+
+### Verification
+`JAVA_HOME=/opt/homebrew/opt/openjdk@17 ./gradlew test` → **BUILD SUCCESSFUL, 155 tests, 0 failures** (up from 154; `CallServiceTest` 6→7). Confirmed the new test actually executed by grepping its name out of `call/build/test-results/`. `yarn audit` → 0 vulnerabilities. Single commit `6ba2007`, verified green before commit and pushed to `origin/main`.
+
+### Delegated
+Nothing. Antigravity was available for mechanical scanning, but every step here was either a judgment call (exploitability, severity, whether a fix was safe to apply unattended) or a grep small enough that delegating would have cost more than it saved.
 
 ## Task 4 — E2E test infrastructure
 - Scope: Playwright (or equivalent) installed as a real, re-runnable committed test suite covering core flows (demo login, parent Today/Gallery, child Family/Message).
