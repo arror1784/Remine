@@ -55,6 +55,11 @@ function unwrap<T>(envelope: ApiEnvelope<T>): T {
   return envelope.data
 }
 
+export async function getMemoryGallery(): Promise<MemoryPhoto[]> {
+  const response = await http.get<ApiEnvelope<MemoryPhoto[]>>('/api/v1/memories')
+  return unwrap(response.data)
+}
+
 export async function uploadPhoto(payload: {
   title: string
   photoUrl: string
