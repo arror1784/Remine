@@ -8,15 +8,37 @@ import { useNotificationStore } from '@/store/notifications'
 import springOuting from '@/assets/memories/family-trip.png'
 import birthdayCake from '@/assets/memories/birthday-cake.png'
 import grandchildWalk from '@/assets/memories/grandchild-walk.png'
-import { getRecommendation } from '@/api/activity'
+import { getRecommendation, getTodaySummary, type TodaySummary } from '@/api/activity'
 import { COLORS } from '@/theme'
 
-const ACTIVITIES = [
+const FALLBACK_ACTIVITIES = [
   { emoji: '🌙', label: '수면', value: '7시간 12분', percent: 90, barColor: COLORS.blue, ok: true },
   { emoji: '👟', label: '걸음', value: '4,280보', percent: 55, barColor: COLORS.orange, ok: false },
   { emoji: '🌿', label: '외출', value: '1회', percent: 40, barColor: COLORS.orange, ok: false },
   { emoji: '💬', label: '사회', value: '0회', percent: 10, barColor: COLORS.borderMuted, ok: false },
 ]
+
+function formatSleep(minutes: number) {
+  return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`
+}
+
+// percent buckets are a placeholder — same "not vs. others, vs. your own goal" spirit as before,
+// just driven by real data now instead of fixed mock numbers.
+function barColorFor(percent: number, zeroValue: boolean) {
+  if (zeroValue) return COLORS.borderMuted
+  return percent >= 70 ? COLORS.blue : COLORS.orange
+}
+
+function buildActivities(summary: TodaySummary | null) {
+  if (!summary?.stat) return FALLBACK_ACTIVITIES
+  const { stat, sleepPercent, stepsPercent, outingPercent, socialPercent } = summary
+  return [
+    { emoji: '🌙', label: '수면', value: formatSleep(stat.sleepMinutes), percent: sleepPercent, barColor: barColorFor(sleepPercent, stat.sleepMinutes === 0), ok: sleepPercent >= 70 },
+    { emoji: '👟', label: '걸음', value: `${stat.steps.toLocaleString()}보`, percent: stepsPercent, barColor: barColorFor(stepsPercent, stat.steps === 0), ok: stepsPercent >= 70 },
+    { emoji: '🌿', label: '외출', value: `${stat.outingCount}회`, percent: outingPercent, barColor: barColorFor(outingPercent, stat.outingCount === 0), ok: outingPercent >= 70 },
+    { emoji: '💬', label: '사회', value: `${stat.socialContactCount}회`, percent: socialPercent, barColor: barColorFor(socialPercent, stat.socialContactCount === 0), ok: socialPercent >= 70 },
+  ]
+}
 
 const WEEK_PATTERN = [
   { day: '수', height: 34 },
@@ -39,6 +61,7 @@ export default function ChildHome() {
   const unreadCount = useNotificationStore((state) => state.childNotifications.filter((n) => n.unread).length)
   // Until the fetch lands (or if it fails) the card keeps its static copy so it never flashes empty.
   const [statusMessage, setStatusMessage] = useState('오늘 외출이 평소보다 적어요')
+  const [summary, setSummary] = useState<TodaySummary | null>(null)
 
   useEffect(() => {
     let active = true
@@ -47,10 +70,17 @@ export default function ChildHome() {
         if (active) setStatusMessage(data.childMessage)
       })
       .catch(() => {})
+    getTodaySummary()
+      .then((data) => {
+        if (active) setSummary(data)
+      })
+      .catch(() => {})
     return () => {
       active = false
     }
   }, [])
+
+  const activities = buildActivities(summary)
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
@@ -125,8 +155,8 @@ export default function ChildHome() {
         <div className="flex flex-col gap-1">
           <h2 className="pb-2 text-[20px] font-semibold text-remine-dark">어머니 오늘의 활동</h2>
           <div className="flex flex-col rounded-[20px] border border-remine-border bg-white">
-            {ACTIVITIES.map((a, i) => (
-              <div key={a.label} className={`flex items-center gap-3.5 px-5 py-4 ${i < ACTIVITIES.length - 1 ? 'border-b border-remine-surfaceSoft2' : ''}`}>
+            {activities.map((a, i) => (
+              <div key={a.label} className={`flex items-center gap-3.5 px-5 py-4 ${i < activities.length - 1 ? 'border-b border-remine-surfaceSoft2' : ''}`}>
                 <span className="text-[15px]">{a.emoji}</span>
                 <div className="flex flex-1 flex-col gap-1.5">
                   <div className="flex items-center justify-between text-[15px] text-remine-dark">

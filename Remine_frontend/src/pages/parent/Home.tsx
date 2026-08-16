@@ -6,7 +6,7 @@ import ModeBar from '@/components/ModeBar'
 import { BellIcon } from '@/components/icons/NavIcons'
 import { useNotificationStore } from '@/store/notifications'
 import familyPhoto from '@/assets/memories/family-trip.png'
-import { getRecommendation, type ActivityActionType, type ActivityRecommendation } from '@/api/activity'
+import { getRecommendation, getTodaySummary, type ActivityActionType, type ActivityRecommendation, type TodaySummary } from '@/api/activity'
 import { COLORS } from '@/theme'
 
 const ACTION_CTA: Record<Exclude<ActivityActionType, 'NONE'>, { label: string; to: string }> = {
@@ -25,23 +25,52 @@ const WEEK_PATTERN = [
   { day: '오늘', height: 27, today: true },
 ]
 
-const ACTIVITIES = [
+const FALLBACK_ACTIVITIES = [
   { emoji: '🌙', label: '수면', value: '7시간 12분', percent: 90, barColor: COLORS.blue, note: '평소와 비슷', noteColor: COLORS.teal },
   { emoji: '👟', label: '걸음', value: '4,280보', percent: 55, barColor: COLORS.orange, note: '조금 적어요', noteColor: COLORS.gold },
   { emoji: '🌿', label: '외출', value: '1회', percent: 40, barColor: COLORS.orange, note: '평소보다 적음', noteColor: COLORS.gold },
   { emoji: '💬', label: '대화', value: '0회', percent: 10, barColor: COLORS.borderMuted, note: '오늘은 휴식', noteColor: COLORS.muted },
 ]
 
+function formatSleep(minutes: number) {
+  return `${Math.floor(minutes / 60)}시간 ${minutes % 60}분`
+}
+
+// percent buckets are a placeholder — same "not vs. others, vs. your own goal" spirit as before,
+// just driven by real data now instead of fixed mock numbers.
+function bucket(percent: number, zeroValue: boolean) {
+  if (zeroValue) return { note: '오늘은 휴식', noteColor: COLORS.muted, barColor: COLORS.borderMuted }
+  if (percent >= 70) return { note: '평소와 비슷', noteColor: COLORS.teal, barColor: COLORS.blue }
+  return { note: '평소보다 적어요', noteColor: COLORS.gold, barColor: COLORS.orange }
+}
+
+function buildActivities(summary: TodaySummary | null) {
+  if (!summary?.stat) return FALLBACK_ACTIVITIES
+  const { stat, sleepPercent, stepsPercent, outingPercent, socialPercent } = summary
+  return [
+    { emoji: '🌙', label: '수면', value: formatSleep(stat.sleepMinutes), percent: sleepPercent, ...bucket(sleepPercent, stat.sleepMinutes === 0) },
+    { emoji: '👟', label: '걸음', value: `${stat.steps.toLocaleString()}보`, percent: stepsPercent, ...bucket(stepsPercent, stat.steps === 0) },
+    { emoji: '🌿', label: '외출', value: `${stat.outingCount}회`, percent: outingPercent, ...bucket(outingPercent, stat.outingCount === 0) },
+    { emoji: '💬', label: '대화', value: `${stat.socialContactCount}회`, percent: socialPercent, ...bucket(socialPercent, stat.socialContactCount === 0) },
+  ]
+}
+
 export default function ParentHome() {
   const location = useLocation()
   const unreadCount = useNotificationStore((state) => state.parentNotifications.filter((n) => n.unread).length)
   const [recommendation, setRecommendation] = useState<ActivityRecommendation | null>(null)
+  const [summary, setSummary] = useState<TodaySummary | null>(null)
 
   useEffect(() => {
     let active = true
     getRecommendation()
       .then((data) => {
         if (active) setRecommendation(data)
+      })
+      .catch(() => {})
+    getTodaySummary()
+      .then((data) => {
+        if (active) setSummary(data)
       })
       .catch(() => {})
     return () => {
@@ -52,6 +81,7 @@ export default function ParentHome() {
   // Until the fetch lands (or if it fails) the card keeps its static copy so it never flashes empty.
   const recommendationMessage = recommendation?.parentMessage ?? '오늘 오후 산책 어떠세요?'
   const cta = recommendation ? (recommendation.actionType === 'NONE' ? null : ACTION_CTA[recommendation.actionType]) : ACTION_CTA.WALK
+  const activities = buildActivities(summary)
 
   return (
     <Screen footer={<BottomTabBar role="parent" accentColor={COLORS.pink} />}>
@@ -116,10 +146,10 @@ export default function ParentHome() {
 
         <div className="flex flex-col">
           <h2 className="pb-1 text-[20px] font-semibold text-remine-dark">오늘의 활동</h2>
-          {ACTIVITIES.map((a, i) => (
+          {activities.map((a, i) => (
             <div
               key={a.label}
-              className={`flex items-center gap-4 py-[18px] ${i < ACTIVITIES.length - 1 ? 'border-b border-remine-border' : ''}`}
+              className={`flex items-center gap-4 py-[18px] ${i < activities.length - 1 ? 'border-b border-remine-border' : ''}`}
             >
               <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-remine-surface text-[17px]">{a.emoji}</div>
               <div className="flex flex-1 flex-col gap-2">
