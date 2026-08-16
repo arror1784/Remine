@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomSheet from '@/components/BottomSheet'
 import { getNotifications, markNotificationAsRead, type NotificationItem } from '@/api/notification'
+import { useNotificationStore } from '@/store/notifications'
 
 function relativeTime(iso: string) {
   const minutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
@@ -16,6 +17,7 @@ export default function ChildNotifications() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const decrementUnreadCount = useNotificationStore((s) => s.decrementUnreadCount)
   const unreadCount = notifications.filter((n) => !n.read).length
 
   useEffect(() => {
@@ -40,6 +42,8 @@ export default function ChildNotifications() {
     // Matches the backend: reading one notification also clears every other unread
     // notification pointing at the same place (deepLink stands in for "kind" — there's
     // no separate type field), so e.g. reading one "new message" alert clears them all.
+    const clearedCount = notifications.filter((item) => !item.read && item.deepLink === n.deepLink).length
+    if (clearedCount > 0) decrementUnreadCount(clearedCount)
     setNotifications((prev) =>
       prev.map((item) => (item.deepLink === n.deepLink ? { ...item, read: true } : item))
     )

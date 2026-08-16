@@ -4,7 +4,7 @@ import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
 import { BellIcon } from '@/components/icons/NavIcons'
-import { getUnreadCount } from '@/api/notification'
+import { useNotificationStore } from '@/store/notifications'
 import springOuting from '@/assets/memories/family-trip.png'
 import birthdayCake from '@/assets/memories/birthday-cake.png'
 import grandchildWalk from '@/assets/memories/grandchild-walk.png'
@@ -58,7 +58,8 @@ const MEMORY_SHORTCUTS = [
 
 export default function ChildHome() {
   const location = useLocation()
-  const [unreadCount, setUnreadCount] = useState(0)
+  const unreadCount = useNotificationStore((s) => s.unreadCount)
+  const refreshUnreadCount = useNotificationStore((s) => s.refreshUnreadCount)
   // Until the fetch lands (or if it fails) the card keeps its static copy so it never flashes empty.
   const [statusMessage, setStatusMessage] = useState('오늘 외출이 평소보다 적어요')
   const [summary, setSummary] = useState<TodaySummary | null>(null)
@@ -75,11 +76,7 @@ export default function ChildHome() {
         if (active) setSummary(data)
       })
       .catch(() => {})
-    getUnreadCount()
-      .then((count) => {
-        if (active) setUnreadCount(count)
-      })
-      .catch(() => {})
+    refreshUnreadCount()
     return () => {
       active = false
     }
