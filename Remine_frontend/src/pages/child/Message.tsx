@@ -168,7 +168,7 @@ export default function ChildMessage() {
           messages.map((m) => {
             const mine = m.senderId === myUserId
             return (
-              <div key={m.id} className={`flex items-end gap-2 ${mine ? 'flex-row-reverse' : ''}`}>
+              <div key={m.id} data-testid="message-bubble" data-mine={mine} className={`flex items-end gap-2 ${mine ? 'flex-row-reverse' : ''}`}>
                 {!mine && pairedStyle && (
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-remine-highlight text-[12px]">
                     {pairedStyle.emoji}

@@ -78,13 +78,13 @@ export default function MemoryGallery() {
         {!loading && !failed && photos.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
             {photos.map((m) => (
-              <div key={m.id} className="relative overflow-hidden rounded-[20px] bg-remine-surface">
+              <div key={m.id} data-testid="memory-card" className="relative overflow-hidden rounded-[20px] bg-remine-surface">
                 <div className="h-[130px] w-full overflow-hidden">
                   <img src={m.photoUrl} alt={m.title} className="size-full object-cover" />
                 </div>
                 <div className="flex flex-col gap-1 px-3 pb-3.5 pt-2.5">
-                  <p className="text-[14px] text-remine-dark">{m.title}</p>
-                  <p className="text-[13px] text-remine-muted">{formatYearMonth(m.createdAt)}</p>
+                  <p data-testid="memory-title" className="text-[14px] text-remine-dark">{m.title}</p>
+                  <p data-testid="memory-date" className="text-[13px] text-remine-muted">{formatYearMonth(m.createdAt)}</p>
                 </div>
                 {m.status === 'QUIZ_ACTIVE' && (
                   <span className="absolute right-2 top-2 flex size-[26px] items-center justify-center rounded-full bg-remine-pink text-white">

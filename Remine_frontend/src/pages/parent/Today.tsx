@@ -13,10 +13,10 @@ const SUGGESTIONS = [
 ]
 
 const FALLBACK_SUMMARY = [
-  { emoji: '🌙', label: '수면', value: '7시간 12분', percent: 90, barColor: COLORS.blue, tag: '안정', tagBg: COLORS.highlightBlue, tagColor: COLORS.teal },
-  { emoji: '🚶', label: '활동량', value: '4,280보', percent: 55, barColor: COLORS.orange, tag: '조금 적음', tagBg: COLORS.highlightOrange, tagColor: COLORS.gold },
-  { emoji: '🌿', label: '외출', value: '1회', percent: 40, barColor: COLORS.orange, tag: '조금 적음', tagBg: COLORS.highlightOrange, tagColor: COLORS.gold },
-  { emoji: '💬', label: '사회 활동', value: '연락 없음', percent: 10, barColor: COLORS.borderMuted, tag: '오늘은 휴식', tagBg: COLORS.surface, tagColor: COLORS.muted },
+  { metric: 'sleep', emoji: '🌙', label: '수면', value: '7시간 12분', percent: 90, barColor: COLORS.blue, tag: '안정', tagBg: COLORS.highlightBlue, tagColor: COLORS.teal },
+  { metric: 'steps', emoji: '🚶', label: '활동량', value: '4,280보', percent: 55, barColor: COLORS.orange, tag: '조금 적음', tagBg: COLORS.highlightOrange, tagColor: COLORS.gold },
+  { metric: 'outing', emoji: '🌿', label: '외출', value: '1회', percent: 40, barColor: COLORS.orange, tag: '조금 적음', tagBg: COLORS.highlightOrange, tagColor: COLORS.gold },
+  { metric: 'social', emoji: '💬', label: '사회 활동', value: '연락 없음', percent: 10, barColor: COLORS.borderMuted, tag: '오늘은 휴식', tagBg: COLORS.surface, tagColor: COLORS.muted },
 ]
 
 function formatSleep(minutes: number) {
@@ -35,10 +35,10 @@ function buildSummary(summary: TodaySummary | null) {
   if (!summary?.stat) return FALLBACK_SUMMARY
   const { stat, sleepPercent, stepsPercent, outingPercent, socialPercent } = summary
   return [
-    { emoji: '🌙', label: '수면', value: formatSleep(stat.sleepMinutes), percent: sleepPercent, ...bucket(sleepPercent, stat.sleepMinutes === 0) },
-    { emoji: '🚶', label: '활동량', value: `${stat.steps.toLocaleString()}보`, percent: stepsPercent, ...bucket(stepsPercent, stat.steps === 0) },
-    { emoji: '🌿', label: '외출', value: `${stat.outingCount}회`, percent: outingPercent, ...bucket(outingPercent, stat.outingCount === 0) },
-    { emoji: '💬', label: '사회 활동', value: stat.socialContactCount === 0 ? '연락 없음' : `${stat.socialContactCount}회`, percent: socialPercent, ...bucket(socialPercent, stat.socialContactCount === 0) },
+    { metric: 'sleep', emoji: '🌙', label: '수면', value: formatSleep(stat.sleepMinutes), percent: sleepPercent, ...bucket(sleepPercent, stat.sleepMinutes === 0) },
+    { metric: 'steps', emoji: '🚶', label: '활동량', value: `${stat.steps.toLocaleString()}보`, percent: stepsPercent, ...bucket(stepsPercent, stat.steps === 0) },
+    { metric: 'outing', emoji: '🌿', label: '외출', value: `${stat.outingCount}회`, percent: outingPercent, ...bucket(outingPercent, stat.outingCount === 0) },
+    { metric: 'social', emoji: '💬', label: '사회 활동', value: stat.socialContactCount === 0 ? '연락 없음' : `${stat.socialContactCount}회`, percent: socialPercent, ...bucket(socialPercent, stat.socialContactCount === 0) },
   ]
 }
 
@@ -87,17 +87,17 @@ export default function ParentToday() {
           <p className="pt-1 text-[16px] leading-[1.5] text-remine-subtle">수면과 활동이 평소와 비슷해요. 활동량이 조금 적으니 오후에 가볍게 움직여 보세요.</p>
         </div>
 
-        <div className="flex flex-col gap-4 rounded-[20px] border border-remine-border bg-white p-5">
+        <div data-testid="today-summary" className="flex flex-col gap-4 rounded-[20px] border border-remine-border bg-white p-5">
           {rows.map((s, i) => (
-            <div key={s.label} className={`flex gap-3.5 ${i < rows.length - 1 ? 'border-b border-remine-surfaceSoft2 pb-4' : ''}`}>
+            <div key={s.label} data-testid={`today-summary-${s.metric}`} className={`flex gap-3.5 ${i < rows.length - 1 ? 'border-b border-remine-surfaceSoft2 pb-4' : ''}`}>
               <span className="w-[26px] shrink-0 text-center text-[15px]">{s.emoji}</span>
               <div className="flex flex-1 flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[16px] text-remine-dark">{s.label}</span>
-                  <span className="text-[16px] text-remine-dark">{s.value}</span>
+                  <span data-testid="value" className="text-[16px] text-remine-dark">{s.value}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-remine-surfaceAlt">
-                  <div className="h-full rounded-full" style={{ width: `${s.percent}%`, backgroundColor: s.barColor }} />
+                  <div data-testid="bar" className="h-full rounded-full" style={{ width: `${s.percent}%`, backgroundColor: s.barColor }} />
                 </div>
               </div>
             </div>
@@ -107,7 +107,7 @@ export default function ParentToday() {
         <div className="flex flex-col">
           <h2 className="pb-1 text-[20px] font-semibold text-remine-dark">생활 패턴 분석</h2>
           {rows.map((p, i) => (
-            <div key={p.label} className={`flex items-center gap-3.5 py-[18px] ${i < rows.length - 1 ? 'border-b border-remine-border' : ''}`}>
+            <div key={p.label} data-testid={`today-pattern-${p.metric}`} className={`flex items-center gap-3.5 py-[18px] ${i < rows.length - 1 ? 'border-b border-remine-border' : ''}`}>
               <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-remine-surface text-[17px]">{p.emoji}</div>
               <div className="flex flex-1 flex-col gap-1">
                 <div className="flex items-center gap-2">

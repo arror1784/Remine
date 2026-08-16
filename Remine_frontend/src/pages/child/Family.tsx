@@ -113,20 +113,20 @@ export default function ChildFamily() {
             </div>
 
             {summary && (
-              <div className="relative flex flex-col gap-3 overflow-hidden rounded-[20px] bg-remine-surfaceDark px-5 pb-5 pt-6">
+              <div data-testid="family-stats" className="relative flex flex-col gap-3 overflow-hidden rounded-[20px] bg-remine-surfaceDark px-5 pb-5 pt-6">
                 <div aria-hidden className="absolute -right-5 -top-4 size-20 rounded-full bg-remine-blue opacity-10 blur-[12px]" />
                 <p className="text-[14px] text-white/40">가족들과 함께한 활동</p>
                 <div className="flex justify-around">
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-[24px] font-semibold text-remine-pink">{summary.messageCount}개</span>
+                    <span data-testid="stat-messages" className="text-[24px] font-semibold text-remine-pink">{summary.messageCount}개</span>
                     <span className="text-[13px] text-white/40">메시지</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-[24px] font-semibold text-remine-orange">{summary.sharedPhotoCount}장</span>
+                    <span data-testid="stat-photos" className="text-[24px] font-semibold text-remine-orange">{summary.sharedPhotoCount}장</span>
                     <span className="text-[13px] text-white/40">공유 사진</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
-                    <span className="text-[24px] font-semibold text-remine-blue">{summary.callCount}회</span>
+                    <span data-testid="stat-calls" className="text-[24px] font-semibold text-remine-blue">{summary.callCount}회</span>
                     <span className="text-[13px] text-white/40">통화</span>
                   </div>
                 </div>
@@ -144,12 +144,12 @@ export default function ChildFamily() {
               {recentChat.map((m) => {
                 const mine = m.senderId === myUserId
                 return (
-                  <div key={m.id} className="flex items-start gap-2.5">
+                  <div key={m.id} data-testid="recent-chat-item" className="flex items-start gap-2.5">
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-remine-highlight text-[13px]">
                       {mine ? '👧' : '👩'}
                     </span>
                     <div>
-                      <p className="text-[14px] leading-[1.4] text-remine-dark">{m.body}</p>
+                      <p data-testid="recent-chat-body" className="text-[14px] leading-[1.4] text-remine-dark">{m.body}</p>
                       <p className="text-[12px] text-remine-muted">{clockTime(m.createdAt)}</p>
                     </div>
                   </div>
@@ -164,7 +164,7 @@ export default function ChildFamily() {
               </div>
               <div className="flex gap-3">
                 {sharedPhotos.map((p) => (
-                  <div key={p.id} className="w-[110px] shrink-0 overflow-hidden rounded-2xl bg-remine-surface">
+                  <div key={p.id} data-testid="shared-photo" className="w-[110px] shrink-0 overflow-hidden rounded-2xl bg-remine-surface">
                     <img src={p.photoUrl} alt={p.title} className="h-[90px] w-full object-cover" />
                     <p className="px-2.5 py-2 text-[12px] text-remine-dark">{p.title}</p>
                   </div>
