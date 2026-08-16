@@ -48,4 +48,23 @@ class RemineUserPrincipalTest {
 
         assertNull(principal.counterpartUserId())
     }
+
+    @Test
+    fun `requireCounterpartUserId returns pairedUserId for both roles when paired`() {
+        val pairedId = UUID.randomUUID()
+        val parentPrincipal = RemineUserPrincipal(userId = UUID.randomUUID(), role = Role.PARENT, pairedUserId = pairedId)
+        val childPrincipal = RemineUserPrincipal(userId = UUID.randomUUID(), role = Role.CHILD, pairedUserId = pairedId)
+
+        assertEquals(pairedId, parentPrincipal.requireCounterpartUserId())
+        assertEquals(pairedId, childPrincipal.requireCounterpartUserId())
+    }
+
+    @Test
+    fun `requireCounterpartUserId throws InvalidRequestException when unpaired for both roles`() {
+        val parentPrincipal = RemineUserPrincipal(userId = UUID.randomUUID(), role = Role.PARENT, pairedUserId = null)
+        val childPrincipal = RemineUserPrincipal(userId = UUID.randomUUID(), role = Role.CHILD, pairedUserId = null)
+
+        assertThrows<InvalidRequestException> { parentPrincipal.requireCounterpartUserId() }
+        assertThrows<InvalidRequestException> { childPrincipal.requireCounterpartUserId() }
+    }
 }

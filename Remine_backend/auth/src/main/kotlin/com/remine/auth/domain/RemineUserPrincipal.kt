@@ -21,4 +21,10 @@ data class RemineUserPrincipal(
 
     /** The "other side" of the pair — who a message/call from this principal should go to. */
     fun counterpartUserId(): UUID? = pairedUserId
+
+    /** Same as [counterpartUserId] but for flows that cannot proceed unpaired. */
+    fun requireCounterpartUserId(): UUID = when (role) {
+        Role.PARENT -> pairedUserId ?: throw InvalidRequestException("Parent account is not paired with a child yet")
+        Role.CHILD -> parentUserId()
+    }
 }

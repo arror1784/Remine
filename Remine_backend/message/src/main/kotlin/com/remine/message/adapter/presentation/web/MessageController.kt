@@ -1,8 +1,6 @@
 package com.remine.message.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
-import com.remine.auth.domain.Role
-import com.remine.common.domain.exception.InvalidRequestException
 import com.remine.common.web.ApiResponse
 import com.remine.message.application.port.inbound.GetChatThreadQuery
 import com.remine.message.application.port.inbound.GetQuickRepliesQuery
@@ -74,11 +72,6 @@ class MessageController(
         return ApiResponse.ok(out.items.map { QuickReplyResponse.from(it) })
     }
 
-    private fun resolveRecipientId(principal: RemineUserPrincipal): UUID {
-        return when (principal.role) {
-            Role.PARENT -> principal.counterpartUserId()
-                ?: throw InvalidRequestException("Parent account is not paired with a child yet")
-            Role.CHILD -> principal.parentUserId()
-        }
-    }
+    private fun resolveRecipientId(principal: RemineUserPrincipal): UUID =
+        principal.requireCounterpartUserId()
 }

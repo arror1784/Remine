@@ -102,7 +102,7 @@ class GenerateMemoryQuizQuestionsServiceTest {
         // Second call on the same photo (regenerating draft questions)
         val newDrafts = listOf("새로운 질문 1", "새로운 질문 2", "새로운 질문 3")
         val generator2 = FakeQuizGeneratorForDraft(newDrafts)
-        val result2 = service(generator2).handle(
+        service(generator2).handle(
             GenerateMemoryQuizQuestionsCommand.In(memoryPhotoId = photoId, ownerUserId = ownerId),
         )
 

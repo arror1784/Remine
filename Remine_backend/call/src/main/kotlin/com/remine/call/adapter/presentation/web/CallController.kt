@@ -1,12 +1,10 @@
 package com.remine.call.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
-import com.remine.auth.domain.Role
 import com.remine.call.application.port.inbound.EndCallCommand
 import com.remine.call.application.port.inbound.GetCallHistoryQuery
 import com.remine.call.application.port.inbound.GetCallStatsQuery
 import com.remine.call.application.port.inbound.StartCallCommand
-import com.remine.common.domain.exception.InvalidRequestException
 import com.remine.common.web.ApiResponse
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -33,11 +31,7 @@ class CallController(
         @AuthenticationPrincipal principal: RemineUserPrincipal,
         @RequestBody(required = false) request: StartCallRequest? = null,
     ): ApiResponse<CallResponse> {
-        val calleeId = request?.calleeId ?: when (principal.role) {
-            Role.PARENT -> principal.counterpartUserId()
-                ?: throw InvalidRequestException("Parent account is not paired with a child yet")
-            Role.CHILD -> principal.parentUserId()
-        }
+        val calleeId = request?.calleeId ?: principal.requireCounterpartUserId()
         val out = startCallCommand.handle(
             StartCallCommand.In(
                 callerId = principal.userId,
