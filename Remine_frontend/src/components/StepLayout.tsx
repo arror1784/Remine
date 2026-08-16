@@ -32,8 +32,8 @@ export default function StepLayout({
           <div className="w-full pb-8">
             <ProgressDots total={4} current={dotIndex} accentColor={accentColor} />
           </div>
-          <h1 className="w-full text-[26px] font-semibold leading-[1.35] text-[#1a1a1a]">{heading}</h1>
-          <p className="w-full pb-8 pt-1.5 text-[15px] leading-[1.5] text-[#9a9c91]">{subtitle}</p>
+          <h1 className="w-full text-[26px] font-semibold leading-[1.35] text-remine-dark">{heading}</h1>
+          <p className="w-full pb-8 pt-1.5 text-[15px] leading-[1.5] text-remine-muted">{subtitle}</p>
           {children}
         </div>
       </div>

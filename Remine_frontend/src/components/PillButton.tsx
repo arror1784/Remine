@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { COLORS } from '@/theme'
 
 type PillButtonProps = {
   children: ReactNode
@@ -7,7 +8,7 @@ type PillButtonProps = {
   color?: string
 }
 
-export default function PillButton({ children, onClick, disabled, color = '#1a1a1a' }: PillButtonProps) {
+export default function PillButton({ children, onClick, disabled, color = COLORS.dark }: PillButtonProps) {
   return (
     <div className="bg-remine-bg px-6 pb-[max(20px,env(safe-area-inset-bottom))] pt-4">
       <button

@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import { useAuthStore } from '@/store/auth'
 import type { Role } from '@/store/auth'
+import { COLORS } from '@/theme'
 
 const PROFILES = [
-  { role: 'parent', label: '부모로 보기', color: '#ff42ad', emoji: '👩', desc: '오늘의 건강, 활동 분석, 추억 퀴즈' },
-  { role: 'child', label: '자녀로 보기', color: '#37ceff', emoji: '👧', desc: '부모님 상태 모니터링, 사진 추가, 메시지' },
+  { role: 'parent', label: '부모로 보기', color: COLORS.pink, emoji: '👩', desc: '오늘의 건강, 활동 분석, 추억 퀴즈' },
+  { role: 'child', label: '자녀로 보기', color: COLORS.blue, emoji: '👧', desc: '부모님 상태 모니터링, 사진 추가, 메시지' },
 ] as const
 
 export default function Login() {
@@ -21,8 +22,8 @@ export default function Login() {
     <Screen>
       <div className="flex h-full flex-col justify-center gap-6 bg-remine-bg px-6">
         <div className="flex flex-col gap-1">
-          <h1 className="text-[24px] font-semibold text-[#1a1a1a]">어떤 화면을 볼까요?</h1>
-          <p className="text-[14px] text-[#9a9c91]">데모 계정으로 바로 둘러볼 수 있어요.</p>
+          <h1 className="text-[24px] font-semibold text-remine-dark">어떤 화면을 볼까요?</h1>
+          <p className="text-[14px] text-remine-muted">데모 계정으로 바로 둘러볼 수 있어요.</p>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -31,14 +32,14 @@ export default function Login() {
               key={p.role}
               type="button"
               onClick={() => enter(p.role)}
-              className="flex items-center gap-3.5 rounded-2xl border-2 border-[#ebebeb] bg-white p-4 text-left"
+              className="flex items-center gap-3.5 rounded-2xl border-2 border-remine-border bg-white p-4 text-left"
             >
-              <div className="flex size-12 items-center justify-center rounded-full bg-[#fff7cc] text-xl">{p.emoji}</div>
+              <div className="flex size-12 items-center justify-center rounded-full bg-remine-highlight text-xl">{p.emoji}</div>
               <div className="flex-1">
                 <span className="text-[16px] font-semibold" style={{ color: p.color }}>
                   {p.label}
                 </span>
-                <p className="pt-0.5 text-[13px] text-[#9a9c91]">{p.desc}</p>
+                <p className="pt-0.5 text-[13px] text-remine-muted">{p.desc}</p>
               </div>
             </button>
           ))}
@@ -47,7 +48,7 @@ export default function Login() {
         <button
           type="button"
           onClick={() => navigate('/onboarding')}
-          className="text-[14px] font-semibold text-[#9a9c91] underline"
+          className="text-[14px] font-semibold text-remine-muted underline"
         >
           새 계정 만들기
         </button>

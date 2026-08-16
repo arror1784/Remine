@@ -2,6 +2,7 @@ import StepLayout from '@/components/StepLayout'
 import PillButton from '@/components/PillButton'
 import type { Role } from '@/pages/onboarding/types'
 import { PARENT_INTERESTS, ROLE_COLOR } from '@/pages/onboarding/types'
+import { COLORS } from '@/theme'
 
 type DetailStepProps = {
   role: Role
@@ -43,13 +44,13 @@ export default function DetailStep({
         }
       >
         <div className="w-full pb-2">
-          <span className="text-[13px] leading-[1.5] text-[#66695d]">초대 코드</span>
+          <span className="text-[13px] leading-[1.5] text-remine-subtle">초대 코드</span>
         </div>
         <input
           value={inviteCode}
           onChange={(e) => onChangeInviteCode(e.target.value.toUpperCase())}
           placeholder="REMIND-XXXX"
-          className="mb-3 h-14 w-full rounded-2xl border-2 bg-[#f2f2ee] px-[18px] text-[18px] tracking-[1.8px] text-[#1a1a1a] placeholder:text-[#bbbbb3] focus:outline-none"
+          className="mb-3 h-14 w-full rounded-2xl border-2 bg-remine-surface px-[18px] text-[18px] tracking-[1.8px] text-remine-dark placeholder:text-remine-borderSoft focus:outline-none"
           style={{ borderColor: accentColor }}
         />
         {connected && (
@@ -61,9 +62,9 @@ export default function DetailStep({
             <span>부모님 계정과 연결됩니다</span>
           </div>
         )}
-        <div className="w-full rounded-[20px] bg-[#f7f7f3] px-[18px] py-4">
-          <p className="pb-1.5 text-[13px] leading-[1.5] text-[#66695d]">초대 코드는 어디서 받나요?</p>
-          <p className="text-[13px] leading-[1.55] text-[#9a9c91]">부모님 앱 → 마이페이지 → 초대 코드에서 확인할 수 있어요.</p>
+        <div className="w-full rounded-[20px] bg-remine-surfaceSoft px-[18px] py-4">
+          <p className="pb-1.5 text-[13px] leading-[1.5] text-remine-subtle">초대 코드는 어디서 받나요?</p>
+          <p className="text-[13px] leading-[1.55] text-remine-muted">부모님 앱 → 마이페이지 → 초대 코드에서 확인할 수 있어요.</p>
         </div>
       </StepLayout>
     )
@@ -93,9 +94,9 @@ export default function DetailStep({
               onClick={() => onToggleInterest(interest)}
               className="flex h-[42px] items-center rounded-full border px-[18px] text-[14px]"
               style={{
-                backgroundColor: selected ? accentColor : '#f2f2ee',
+                backgroundColor: selected ? accentColor : COLORS.surface,
                 borderColor: selected ? accentColor : 'transparent',
-                color: selected ? '#ffffff' : '#66695d',
+                color: selected ? COLORS.white : COLORS.subtle,
                 fontWeight: selected ? 600 : 400,
               }}
             >
@@ -104,9 +105,9 @@ export default function DetailStep({
           )
         })}
       </div>
-      <div className="flex w-full items-center gap-2 rounded-2xl bg-[#fff7cc] px-[18px] py-3.5">
+      <div className="flex w-full items-center gap-2 rounded-2xl bg-remine-highlight px-[18px] py-3.5">
         <span className="text-[13px]">💡</span>
-        <span className="text-[13px] leading-[1.55] text-[#66695d]">나중에 설정에서 언제든 바꿀 수 있어요.</span>
+        <span className="text-[13px] leading-[1.55] text-remine-subtle">나중에 설정에서 언제든 바꿀 수 있어요.</span>
       </div>
     </StepLayout>
   )

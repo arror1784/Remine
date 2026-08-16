@@ -1,8 +1,10 @@
+import { COLORS } from '@/theme'
+
 export type Role = 'parent' | 'child'
 
 export const ROLE_COLOR: Record<Role, string> = {
-  parent: '#ff42ad',
-  child: '#37ceff',
+  parent: COLORS.pink,
+  child: COLORS.blue,
 }
 
 export const PAIRING_FAILED = 'PAIRING_FAILED'

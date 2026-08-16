@@ -3,6 +3,7 @@ import PillButton from '@/components/PillButton'
 import type { Role } from '@/pages/onboarding/types'
 import { ROLE_COLOR } from '@/pages/onboarding/types'
 import checkSmall from '@/assets/check-small.svg'
+import { COLORS } from '@/theme'
 
 type RoleSelectStepProps = {
   role: Role | null
@@ -17,7 +18,7 @@ const ROLE_CARDS: { role: Role; emoji: string; title: string; subtitle: string; 
 ]
 
 export default function RoleSelectStep({ role, onSelectRole, onBack, onNext }: RoleSelectStepProps) {
-  const accentColor = role ? ROLE_COLOR[role] : '#ff42ad'
+  const accentColor = role ? ROLE_COLOR[role] : COLORS.pink
 
   return (
     <StepLayout
@@ -43,8 +44,8 @@ export default function RoleSelectStep({ role, onSelectRole, onBack, onNext }: R
               onClick={() => onSelectRole(card.role)}
               className="flex w-full flex-col gap-2.5 rounded-[20px] border-2 p-5 text-left"
               style={{
-                borderColor: selected ? color : '#ebebeb',
-                backgroundColor: selected ? `${color}08` : '#ffffff',
+                borderColor: selected ? color : COLORS.border,
+                backgroundColor: selected ? `${color}08` : COLORS.white,
               }}
             >
               <div className="flex w-full items-center gap-3.5">
@@ -56,7 +57,7 @@ export default function RoleSelectStep({ role, onSelectRole, onBack, onNext }: R
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <span className="text-[18px] font-semibold leading-[1.5] text-[#1a1a1a]">{card.title}</span>
+                    <span className="text-[18px] font-semibold leading-[1.5] text-remine-dark">{card.title}</span>
                     {selected && (
                       <span
                         className="flex size-[18px] items-center justify-center rounded-full"
@@ -66,10 +67,10 @@ export default function RoleSelectStep({ role, onSelectRole, onBack, onNext }: R
                       </span>
                     )}
                   </div>
-                  <span className="text-[13px] leading-[1.5] text-[#9a9c91]">{card.subtitle}</span>
+                  <span className="text-[13px] leading-[1.5] text-remine-muted">{card.subtitle}</span>
                 </div>
               </div>
-              <p className="text-[14px] leading-[1.5] text-[#66695d]">{card.desc}</p>
+              <p className="text-[14px] leading-[1.5] text-remine-subtle">{card.desc}</p>
             </button>
           )
         })}

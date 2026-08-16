@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import BottomTabBar from '@/components/BottomTabBar'
 import familyTrip from '@/assets/memories/family-trip.png'
+import { COLORS } from '@/theme'
 
 const QUESTIONS = [
   { question: '이 사진은 어느 계절에 찍으셨나요?', options: ['봄', '여름', '가을', '겨울'], answer: 0 },
@@ -22,14 +23,14 @@ export default function MemoryQuiz() {
   }
 
   return (
-    <Screen footer={!done && <BottomTabBar role="parent" accentColor="#ff42ad" />}>
+    <Screen footer={!done && <BottomTabBar role="parent" accentColor={COLORS.pink} />}>
       <div className="flex items-center gap-3 px-5 pt-[max(30px,env(safe-area-inset-top))]">
         {!done && (
-          <button type="button" onClick={() => navigate('/parent/memories')} className="text-[20px] text-[#1a1a1a]">
+          <button type="button" onClick={() => navigate('/parent/memories')} className="text-[20px] text-remine-dark">
             ‹
           </button>
         )}
-        <h1 className="text-[20px] font-semibold text-[#1a1a1a]">추억 퀴즈</h1>
+        <h1 className="text-[20px] font-semibold text-remine-dark">추억 퀴즈</h1>
       </div>
 
       <div className="flex flex-col gap-5 px-5 pb-10 pt-5">
@@ -40,15 +41,15 @@ export default function MemoryQuiz() {
         {done ? (
           <div className="flex flex-col items-center pt-4 text-center">
             <div className="mb-5 flex size-20 items-center justify-center rounded-[28px] bg-remine-pink/10 text-3xl">🎉</div>
-            <h2 className="mb-2 text-[24px] font-semibold text-[#1a1a1a]">퀴즈 완료!</h2>
-            <p className="mb-1 text-[16px] text-[#1a1a1a]">
+            <h2 className="mb-2 text-[24px] font-semibold text-remine-dark">퀴즈 완료!</h2>
+            <p className="mb-1 text-[16px] text-remine-dark">
               {QUESTIONS.length}문제 중 <span className="font-semibold text-remine-pink">{correctCount}문제</span> 맞혔어요!
             </p>
-            <p className="mb-8 text-[14px] text-[#9a9c91]">소중한 추억을 떠올리는 시간이었어요</p>
+            <p className="mb-8 text-[14px] text-remine-muted">소중한 추억을 떠올리는 시간이었어요</p>
             <button
               type="button"
               onClick={() => navigate('/parent/memories')}
-              className="h-[52px] w-full rounded-2xl bg-[#1a1a1a] text-[16px] font-semibold text-white"
+              className="h-[52px] w-full rounded-2xl bg-remine-dark text-[16px] font-semibold text-white"
             >
               갤러리 돌아가기
             </button>
@@ -60,23 +61,23 @@ export default function MemoryQuiz() {
                 <div
                   key={i}
                   className="h-1 flex-1 rounded-full"
-                  style={{ backgroundColor: i === step ? '#ff42ad' : '#ebebeb' }}
+                  style={{ backgroundColor: i === step ? COLORS.pink : COLORS.border }}
                 />
               ))}
             </div>
-            <p className="text-[14px] font-medium text-[#9a9c91]">
+            <p className="text-[14px] font-medium text-remine-muted">
               {step + 1} / {QUESTIONS.length}
             </p>
-            <h2 className="text-[20px] font-semibold leading-[1.4] text-[#1a1a1a]">{QUESTIONS[step].question}</h2>
+            <h2 className="text-[20px] font-semibold leading-[1.4] text-remine-dark">{QUESTIONS[step].question}</h2>
             <div className="flex flex-col gap-2.5">
               {QUESTIONS[step].options.map((option, i) => (
                 <button
                   key={option}
                   type="button"
                   onClick={() => selectAnswer(i)}
-                  className="flex h-14 items-center gap-3 rounded-2xl bg-white px-4 text-left text-[16px] text-[#1a1a1a]"
+                  className="flex h-14 items-center gap-3 rounded-2xl bg-white px-4 text-left text-[16px] text-remine-dark"
                 >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-[#ebebeb] text-[13px] text-[#9a9c91]">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-remine-border text-[13px] text-remine-muted">
                     {i + 1}
                   </span>
                   {option}

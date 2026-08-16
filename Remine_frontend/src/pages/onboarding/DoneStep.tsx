@@ -4,6 +4,7 @@ import StepNav from '@/components/StepNav'
 import PillButton from '@/components/PillButton'
 import type { OnboardingState } from '@/pages/onboarding/types'
 import { PAIRING_FAILED, ROLE_COLOR } from '@/pages/onboarding/types'
+import { COLORS } from '@/theme'
 
 type DoneStepProps = {
   state: OnboardingState
@@ -52,15 +53,15 @@ export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
         >
           🎉
         </div>
-        <h1 className="mb-2.5 text-[28px] font-semibold leading-[1.5] text-[#1a1a1a]">
+        <h1 className="mb-2.5 text-[28px] font-semibold leading-[1.5] text-remine-dark">
           {role === 'parent' ? '시작할 준비가 됐어요!' : '연결 완료!'}
         </h1>
-        <p className="mb-8 text-[15px] leading-[1.6] text-[#9a9c91]">
+        <p className="mb-8 text-[15px] leading-[1.6] text-remine-muted">
           {role === 'parent' ? 'REMIND와 함께 건강한 하루를 만들어 가요.' : `${name || '부모님'}과 연결됐어요. 이제 언제든 상태를 확인할 수 있어요.`}
         </p>
 
         {role === 'parent' ? (
-          <div className="w-full rounded-3xl border border-[#ebebeb] bg-white p-5 text-left">
+          <div className="w-full rounded-3xl border border-remine-border bg-white p-5 text-left">
             <div className="mb-4 flex items-center gap-3.5">
               <div
                 className="flex size-[50px] items-center justify-center rounded-2xl text-xl"
@@ -69,8 +70,8 @@ export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
                 👩
               </div>
               <div>
-                <p className="text-[18px] font-semibold leading-[1.5] text-[#1a1a1a]">{name || '회원'}님</p>
-                <p className="text-[13px] leading-[1.5] text-[#9a9c91]">부모님 모드 · {ageGroup}</p>
+                <p className="text-[18px] font-semibold leading-[1.5] text-remine-dark">{name || '회원'}님</p>
+                <p className="text-[13px] leading-[1.5] text-remine-muted">부모님 모드 · {ageGroup}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -86,11 +87,11 @@ export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
             </div>
           </div>
         ) : (
-          <div className="relative w-full overflow-hidden rounded-3xl bg-[#1c1c1c] p-5 text-left">
+          <div className="relative w-full overflow-hidden rounded-3xl bg-remine-surfaceDark p-5 text-left">
             <div className="mb-3.5 flex items-center gap-3.5">
               <div
                 className="flex size-[50px] items-center justify-center rounded-full border-2"
-                style={{ backgroundColor: '#fff7cc', borderColor: accentColor }}
+                style={{ backgroundColor: COLORS.highlight, borderColor: accentColor }}
               >
                 👩
               </div>

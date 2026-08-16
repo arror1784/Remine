@@ -11,7 +11,7 @@ export default function ProgressDots({ total, current, accentColor }: ProgressDo
         i === current ? (
           <div key={i} className="h-[7px] w-5 rounded-full" style={{ backgroundColor: accentColor }} />
         ) : (
-          <div key={i} className="size-[7px] rounded-full bg-[#e0e0d8]" />
+          <div key={i} className="size-[7px] rounded-full bg-remine-surfaceSoft4" />
         ),
       )}
     </div>

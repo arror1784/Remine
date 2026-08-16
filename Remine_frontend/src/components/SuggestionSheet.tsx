@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import BottomSheet from '@/components/BottomSheet'
+import { COLORS } from '@/theme'
 
 type SuggestionSheetProps = {
   emoji: string
@@ -17,17 +18,17 @@ export default function SuggestionSheet({
   description,
   primaryLabel,
   primaryColor,
-  primaryTextColor = '#ffffff',
+  primaryTextColor = COLORS.white,
   onPrimary,
 }: SuggestionSheetProps) {
   const navigate = useNavigate()
 
   return (
     <BottomSheet>
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-[#f2f2ee] text-xl">{emoji}</div>
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-remine-surface text-xl">{emoji}</div>
       <div className="flex flex-col gap-2">
-        <h2 className="text-[21px] font-semibold text-[#1a1a1a]">{title}</h2>
-        <p className="text-[14px] leading-[1.5] text-[#66695d]">{description}</p>
+        <h2 className="text-[21px] font-semibold text-remine-dark">{title}</h2>
+        <p className="text-[14px] leading-[1.5] text-remine-subtle">{description}</p>
       </div>
       <button
         type="button"
@@ -40,7 +41,7 @@ export default function SuggestionSheet({
       <button
         type="button"
         onClick={() => navigate(-1)}
-        className="h-[52px] rounded-2xl bg-[#f2f2ee] text-[16px] font-semibold text-[#1a1a1a]"
+        className="h-[52px] rounded-2xl bg-remine-surface text-[16px] font-semibold text-remine-dark"
       >
         다음에 할게요
       </button>

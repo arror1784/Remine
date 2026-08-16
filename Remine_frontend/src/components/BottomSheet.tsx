@@ -29,7 +29,7 @@ export default function BottomSheet({ children }: BottomSheetProps) {
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mx-auto h-1 w-10 rounded-full bg-[#ddddd5]" />
+        <div className="mx-auto h-1 w-10 rounded-full bg-remine-borderMuted" />
         {children}
       </div>
     </div>
