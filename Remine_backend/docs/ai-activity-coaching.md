@@ -1,6 +1,6 @@
 # AI 활동 코칭 추천 — 설계 문서
 
-> 상태: **백엔드 완성 (빌드/유닛테스트 통과, 실 OpenAI 키로는 미검증). 프론트엔드 연동 전.**
+> 상태: **백엔드 + 프론트엔드 연동 완성 (빌드/유닛테스트 통과, 실 OpenAI 키로는 미검증).**
 > [`ai-quiz-generation.md`](./ai-quiz-generation.md)(추억 퀴즈 자동생성)에 이은 두 번째 AI 기능.
 > 공통 인프라(`client-openai` 모듈)를 그대로 재사용한다.
 
@@ -108,10 +108,16 @@ curl -s localhost:8080/api/v1/activities/recommendation -H "Authorization: Beare
 `actionType`이 실제로 가장 낮은 지표와 맞는지, (3) 두 번째 호출의 `id`가 첫 번째와 동일한지(캐싱
 확인, AI 재호출 안 됐는지).
 
+## 프론트엔드 (완료)
+
+- `src/api/activity.ts` — `getRecommendation()`
+- `parent/Home.tsx`의 "AI 추천" 카드, `child/Home.tsx`의 "상태 알림" 카드가 실 데이터 사용
+- `actionType` → 기존 리마인더 3종 라우팅/라벨 매핑 완료(`WALK`→`/parent/reminders/walk`,
+  `CALL`→`/parent/reminders/call`, `QUIZ`→`/parent/reminders/quiz`, `NONE`→버튼 숨김)
+- 데이터 로딩 전/실패 시엔 기존 정적 문구를 그대로 유지(깜빡임/에러 배너 없음)
+
 ## 다음 단계 (범위 밖)
 
-- **프론트엔드 연동**: 아직 안 됨. `parent/Home.tsx`/`child/Home.tsx`의 하드코딩 카드를 이 API로
-  교체하고, `actionType` → 기존 리마인더 화면 라우팅 매핑 필요.
 - **리마인더 화면 3종 자체는 여전히 정적**: `WalkReminder`/`CallReminder`/`QuizReminder`의
   제목/설명 문구는 이번 범위에 포함 안 됨 — 홈 화면 카드만 실제 AI 생성으로 바뀜.
 - **주간 트렌드 반영**: 지금은 오늘 하루 수치만 씀. "지난주보다 나아졌어요" 같은 비교는 다음 단계.
