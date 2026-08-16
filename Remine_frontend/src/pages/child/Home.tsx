@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
@@ -7,6 +8,7 @@ import { useNotificationStore } from '@/store/notifications'
 import springOuting from '@/assets/memories/family-trip.png'
 import birthdayCake from '@/assets/memories/birthday-cake.png'
 import grandchildWalk from '@/assets/memories/grandchild-walk.png'
+import { getRecommendation } from '@/api/activity'
 import { COLORS } from '@/theme'
 
 const ACTIVITIES = [
@@ -35,6 +37,20 @@ const MEMORY_SHORTCUTS = [
 export default function ChildHome() {
   const location = useLocation()
   const unreadCount = useNotificationStore((state) => state.childNotifications.filter((n) => n.unread).length)
+  // Until the fetch lands (or if it fails) the card keeps its static copy so it never flashes empty.
+  const [statusMessage, setStatusMessage] = useState('오늘 외출이 평소보다 적어요')
+
+  useEffect(() => {
+    let active = true
+    getRecommendation()
+      .then((data) => {
+        if (active) setStatusMessage(data.childMessage)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
@@ -103,8 +119,7 @@ export default function ChildHome() {
             <span className="size-2 rounded-sm bg-remine-blue" />
             <span className="text-[13px] font-semibold tracking-wide text-remine-dark">상태 알림</span>
           </div>
-          <p className="pt-1 text-[20px] font-semibold text-remine-dark">오늘 외출이 평소보다 적어요</p>
-          <p className="text-[15px] leading-[1.5] text-remine-subtle">어머니가 오늘 아직 외출을 못 하셨어요. 가벼운 산책을 권해드려 보세요.</p>
+          <p className="pt-1 text-[20px] font-semibold leading-[1.4] text-remine-dark">{statusMessage}</p>
         </div>
 
         <div className="flex flex-col gap-1">

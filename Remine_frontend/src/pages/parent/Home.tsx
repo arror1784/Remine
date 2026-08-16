@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import BottomTabBar from '@/components/BottomTabBar'
@@ -5,7 +6,14 @@ import ModeBar from '@/components/ModeBar'
 import { BellIcon } from '@/components/icons/NavIcons'
 import { useNotificationStore } from '@/store/notifications'
 import familyPhoto from '@/assets/memories/family-trip.png'
+import { getRecommendation, type ActivityActionType, type ActivityRecommendation } from '@/api/activity'
 import { COLORS } from '@/theme'
+
+const ACTION_CTA: Record<Exclude<ActivityActionType, 'NONE'>, { label: string; to: string }> = {
+  WALK: { label: '산책 시작하기', to: '/parent/reminders/walk' },
+  CALL: { label: '전화 연결하기', to: '/parent/reminders/call' },
+  QUIZ: { label: '퀴즈 시작하기', to: '/parent/reminders/quiz' },
+}
 
 const WEEK_PATTERN = [
   { day: '수', height: 24 },
@@ -27,6 +35,23 @@ const ACTIVITIES = [
 export default function ParentHome() {
   const location = useLocation()
   const unreadCount = useNotificationStore((state) => state.parentNotifications.filter((n) => n.unread).length)
+  const [recommendation, setRecommendation] = useState<ActivityRecommendation | null>(null)
+
+  useEffect(() => {
+    let active = true
+    getRecommendation()
+      .then((data) => {
+        if (active) setRecommendation(data)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
+  // Until the fetch lands (or if it fails) the card keeps its static copy so it never flashes empty.
+  const recommendationMessage = recommendation?.parentMessage ?? '오늘 오후 산책 어떠세요?'
+  const cta = recommendation ? (recommendation.actionType === 'NONE' ? null : ACTION_CTA[recommendation.actionType]) : ACTION_CTA.WALK
 
   return (
     <Screen footer={<BottomTabBar role="parent" accentColor={COLORS.pink} />}>
@@ -120,15 +145,18 @@ export default function ParentHome() {
             <span className="size-2 rounded-sm bg-remine-pink" />
             <span className="text-[13px] font-semibold tracking-wide text-remine-dark">AI 추천</span>
           </div>
-          <p className="pt-1 text-[20px] font-semibold text-remine-dark">오늘 오후 산책 어떠세요?</p>
-          <p className="pb-3 text-[15px] leading-[1.5] text-remine-subtle">걸음 수가 평소보다 적어요. 20분 가벼운 산책이 기분 전환에 도움이 돼요.</p>
-          <Link
-            to="/parent/reminders/walk"
-            state={{ backgroundLocation: location }}
-            className="flex h-[52px] items-center justify-center rounded-2xl bg-remine-dark text-[17px] font-semibold text-white"
-          >
-            산책 시작하기
-          </Link>
+          <p className={`pt-1 text-[20px] font-semibold leading-[1.4] text-remine-dark ${cta ? 'pb-3' : ''}`}>
+            {recommendationMessage}
+          </p>
+          {cta && (
+            <Link
+              to={cta.to}
+              state={{ backgroundLocation: location }}
+              className="flex h-[52px] items-center justify-center rounded-2xl bg-remine-dark text-[17px] font-semibold text-white"
+            >
+              {cta.label}
+            </Link>
+          )}
         </div>
 
         <div className="flex flex-col gap-4">
