@@ -4,7 +4,7 @@ import Screen from '@/components/Screen'
 import BottomTabBar from '@/components/BottomTabBar'
 import ModeBar from '@/components/ModeBar'
 import { BellIcon } from '@/components/icons/NavIcons'
-import { useNotificationStore } from '@/store/notifications'
+import { getUnreadCount } from '@/api/notification'
 import familyPhoto from '@/assets/memories/family-trip.png'
 import { getRecommendation, getTodaySummary, type ActivityActionType, type ActivityRecommendation, type TodaySummary } from '@/api/activity'
 import { getTodayQuiz, type TodayQuiz } from '@/api/memory'
@@ -58,7 +58,7 @@ function buildActivities(summary: TodaySummary | null) {
 
 export default function ParentHome() {
   const location = useLocation()
-  const unreadCount = useNotificationStore((state) => state.parentNotifications.filter((n) => n.unread).length)
+  const [unreadCount, setUnreadCount] = useState(0)
   const [recommendation, setRecommendation] = useState<ActivityRecommendation | null>(null)
   const [summary, setSummary] = useState<TodaySummary | null>(null)
   const [todayQuiz, setTodayQuiz] = useState<TodayQuiz | null>(null)
@@ -78,6 +78,11 @@ export default function ParentHome() {
     getTodayQuiz()
       .then((data) => {
         if (active) setTodayQuiz(data)
+      })
+      .catch(() => {})
+    getUnreadCount()
+      .then((count) => {
+        if (active) setUnreadCount(count)
       })
       .catch(() => {})
     return () => {
