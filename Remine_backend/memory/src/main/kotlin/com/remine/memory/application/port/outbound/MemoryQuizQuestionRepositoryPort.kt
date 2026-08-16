@@ -6,4 +6,5 @@ import java.util.UUID
 interface MemoryQuizQuestionRepositoryPort {
     fun saveAll(questions: List<MemoryQuizQuestion>): List<MemoryQuizQuestion>
     fun findAllByMemoryPhotoIdOrderBySortOrderAsc(memoryPhotoId: UUID): List<MemoryQuizQuestion>
+    fun deleteAllByMemoryPhotoId(memoryPhotoId: UUID)
 }

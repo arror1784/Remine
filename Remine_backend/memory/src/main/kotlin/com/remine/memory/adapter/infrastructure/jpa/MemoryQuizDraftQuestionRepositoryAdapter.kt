@@ -1,21 +1,21 @@
 package com.remine.memory.adapter.infrastructure.jpa
 
-import com.remine.memory.application.port.outbound.MemoryQuizQuestionRepositoryPort
-import com.remine.memory.domain.MemoryQuizQuestion
+import com.remine.memory.application.port.outbound.MemoryQuizDraftQuestionRepositoryPort
+import com.remine.memory.domain.MemoryQuizDraftQuestion
 import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
-class MemoryQuizQuestionRepositoryAdapter(
-    private val jpaRepository: MemoryQuizQuestionJpaRepository,
-) : MemoryQuizQuestionRepositoryPort {
+class MemoryQuizDraftQuestionRepositoryAdapter(
+    private val jpaRepository: MemoryQuizDraftQuestionJpaRepository,
+) : MemoryQuizDraftQuestionRepositoryPort {
 
-    override fun saveAll(questions: List<MemoryQuizQuestion>): List<MemoryQuizQuestion> {
-        val entities = questions.map { MemoryQuizQuestionJpaEntity.from(it) }
+    override fun saveAll(questions: List<MemoryQuizDraftQuestion>): List<MemoryQuizDraftQuestion> {
+        val entities = questions.map { MemoryQuizDraftQuestionJpaEntity.from(it) }
         return jpaRepository.saveAll(entities).map { it.toDomain() }
     }
 
-    override fun findAllByMemoryPhotoIdOrderBySortOrderAsc(memoryPhotoId: UUID): List<MemoryQuizQuestion> =
+    override fun findAllByMemoryPhotoIdOrderBySortOrderAsc(memoryPhotoId: UUID): List<MemoryQuizDraftQuestion> =
         jpaRepository.findAllByMemoryPhotoIdOrderBySortOrderAsc(memoryPhotoId).map { it.toDomain() }
 
     override fun deleteAllByMemoryPhotoId(memoryPhotoId: UUID) {

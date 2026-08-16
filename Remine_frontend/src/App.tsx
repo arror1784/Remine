@@ -24,6 +24,7 @@ import ChildToday from '@/pages/child/Today'
 import ChildMyPage from '@/pages/child/MyPage'
 import ChildMemoryGallery from '@/pages/child/memories/Gallery'
 import AddMemoryPhoto from '@/pages/child/memories/AddPhoto'
+import AnswerQuiz from '@/pages/child/memories/AnswerQuiz'
 import ChildFamily from '@/pages/child/Family'
 import ChildMessage from '@/pages/child/Message'
 import ChildCall from '@/pages/child/Call'
@@ -73,6 +74,7 @@ function App() {
           <Route path="/child/mypage" element={<ChildMyPage />} />
           <Route path="/child/memories" element={<ChildMemoryGallery />} />
           <Route path="/child/memories/add" element={<AddMemoryPhoto />} />
+          <Route path="/child/memories/:photoId/answer-quiz" element={<AnswerQuiz />} />
           <Route path="/child/family" element={<ChildFamily />} />
           <Route path="/child/family/message" element={<ChildMessage />} />
           <Route path="/child/family/call" element={<ChildCall />} />

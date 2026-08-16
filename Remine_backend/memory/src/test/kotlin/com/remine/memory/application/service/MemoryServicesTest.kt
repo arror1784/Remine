@@ -61,7 +61,13 @@ class FakeMemoryQuizQuestionRepository : MemoryQuizQuestionRepositoryPort {
     }
 
     override fun findAllByMemoryPhotoIdOrderBySortOrderAsc(memoryPhotoId: UUID): List<MemoryQuizQuestion> =
-        questions.filter { it.memoryPhotoId == memoryPhotoId }.sortedBy { it.sortOrder }
+        questions.filter { it.memoryPhotoId == memoryPhotoId && it.deletedAt == null }.sortedBy { it.sortOrder }
+
+    override fun deleteAllByMemoryPhotoId(memoryPhotoId: UUID) {
+        val toDelete = questions.filter { it.memoryPhotoId == memoryPhotoId && it.deletedAt == null }
+        questions.removeAll(toDelete)
+        questions.addAll(toDelete.map { it.copy(deletedAt = java.time.Instant.now()) })
+    }
 }
 
 class FakeMemoryQuizAttemptRepository : MemoryQuizAttemptRepositoryPort {

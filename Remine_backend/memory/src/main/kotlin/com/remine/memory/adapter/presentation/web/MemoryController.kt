@@ -2,9 +2,11 @@ package com.remine.memory.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
 import com.remine.common.web.ApiResponse
+import com.remine.memory.application.port.inbound.CompleteMemoryQuizWithAnswersCommand
 import com.remine.memory.application.port.inbound.CreateMemoryQuizCommand
-import com.remine.memory.application.port.inbound.GenerateMemoryQuizCommand
+import com.remine.memory.application.port.inbound.GenerateMemoryQuizQuestionsCommand
 import com.remine.memory.application.port.inbound.GetMemoryGalleryQuery
+import com.remine.memory.application.port.inbound.GetMemoryQuizDraftQuestionsQuery
 import com.remine.memory.application.port.inbound.GetMemoryQuizQuery
 import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
 import com.remine.memory.application.port.inbound.GetTodayQuizQuery
@@ -27,7 +29,9 @@ class MemoryController(
     private val getMemoryGalleryQuery: GetMemoryGalleryQuery,
     private val getMemoryStatsQuery: GetMemoryStatsQuery,
     private val createMemoryQuizCommand: CreateMemoryQuizCommand,
-    private val generateMemoryQuizCommand: GenerateMemoryQuizCommand,
+    private val generateMemoryQuizQuestionsCommand: GenerateMemoryQuizQuestionsCommand,
+    private val completeMemoryQuizWithAnswersCommand: CompleteMemoryQuizWithAnswersCommand,
+    private val getMemoryQuizDraftQuestionsQuery: GetMemoryQuizDraftQuestionsQuery,
     private val getMemoryQuizQuery: GetMemoryQuizQuery,
     private val getTodayQuizQuery: GetTodayQuizQuery,
     private val submitMemoryQuizAttemptCommand: SubmitMemoryQuizAttemptCommand,
@@ -80,7 +84,7 @@ class MemoryController(
         )
     }
 
-    // Not yet wired to any frontend UI; exists so a future AI/knowledge service can call it once that's built.
+    // Manual quiz creation (kept unchanged for custom family quizzes)
     @PostMapping("/{id}/quiz")
     fun createMemoryQuiz(
         @AuthenticationPrincipal principal: RemineUserPrincipal,
@@ -103,18 +107,63 @@ class MemoryController(
         return ApiResponse.ok(result.questions.map { MemoryQuizQuestionResponse.from(it) })
     }
 
-    @PostMapping("/{id}/quiz/generate")
-    fun generateMemoryQuiz(
+    /**
+     * Step 1: AI generates pure questions without options/answers for the child.
+     */
+    @PostMapping("/{id}/quiz/generate-questions")
+    fun generateMemoryQuizQuestions(
         @AuthenticationPrincipal principal: RemineUserPrincipal,
         @PathVariable id: UUID,
-    ): ApiResponse<List<MemoryQuizQuestionResponse>> {
-        val result = generateMemoryQuizCommand.handle(
-            GenerateMemoryQuizCommand.In(
+    ): ApiResponse<List<MemoryQuizDraftQuestionResponse>> {
+        val result = generateMemoryQuizQuestionsCommand.handle(
+            GenerateMemoryQuizQuestionsCommand.In(
                 memoryPhotoId = id,
                 ownerUserId = principal.parentUserId(),
             ),
         )
+        return ApiResponse.ok(result.questions.map { MemoryQuizDraftQuestionResponse.from(it) })
+    }
+
+    /**
+     * Step 3: Given child's real answers, AI generates distractors and saves final 4-choice quiz.
+     */
+    @PostMapping("/{id}/quiz/complete-with-answers")
+    fun completeMemoryQuizWithAnswers(
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: CompleteMemoryQuizWithAnswersRequest,
+    ): ApiResponse<List<MemoryQuizQuestionResponse>> {
+        val result = completeMemoryQuizWithAnswersCommand.handle(
+            CompleteMemoryQuizWithAnswersCommand.In(
+                memoryPhotoId = id,
+                ownerUserId = principal.parentUserId(),
+                answers = request.answers.map {
+                    CompleteMemoryQuizWithAnswersCommand.AnswerIn(
+                        draftQuestionId = it.questionId,
+                        question = it.question,
+                        answer = it.answer,
+                    )
+                },
+            ),
+        )
         return ApiResponse.ok(result.questions.map { MemoryQuizQuestionResponse.from(it) })
+    }
+
+    /**
+     * Query draft questions for a memory photo.
+     */
+    @GetMapping("/{id}/quiz/draft-questions")
+    fun getMemoryQuizDraftQuestions(
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+        @PathVariable id: UUID,
+    ): ApiResponse<List<MemoryQuizDraftQuestionResponse>> {
+        val result = getMemoryQuizDraftQuestionsQuery.handle(
+            GetMemoryQuizDraftQuestionsQuery.In(
+                memoryPhotoId = id,
+                ownerUserId = principal.parentUserId(),
+            ),
+        )
+        return ApiResponse.ok(result.questions.map { MemoryQuizDraftQuestionResponse.from(it) })
     }
 
     @GetMapping("/{id}/quiz")

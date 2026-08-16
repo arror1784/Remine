@@ -2,20 +2,20 @@ package com.remine.memory.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
 import com.remine.auth.domain.Role
+import com.remine.memory.application.port.inbound.CompleteMemoryQuizWithAnswersCommand
 import com.remine.memory.application.port.inbound.CreateMemoryQuizCommand
-import com.remine.memory.application.port.inbound.GenerateMemoryQuizCommand
+import com.remine.memory.application.port.inbound.GenerateMemoryQuizQuestionsCommand
 import com.remine.memory.application.port.inbound.GetMemoryGalleryQuery
+import com.remine.memory.application.port.inbound.GetMemoryQuizDraftQuestionsQuery
 import com.remine.memory.application.port.inbound.GetMemoryQuizQuery
 import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
 import com.remine.memory.application.port.inbound.GetTodayQuizQuery
 import com.remine.memory.application.port.inbound.SubmitMemoryQuizAttemptCommand
 import com.remine.memory.application.port.inbound.UploadMemoryPhotoCommand
 import com.remine.memory.domain.MemoryPhoto
-import com.remine.memory.domain.MemoryPhotoStatus
+import com.remine.memory.domain.MemoryQuizDraftQuestion
 import com.remine.memory.domain.MemoryQuizQuestion
-import com.remine.memory.domain.QuestionView
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -54,16 +54,7 @@ class MemoryControllerTest {
             }
         }
 
-        val controller = MemoryController(
-            uploadMemoryPhotoCommand = uploadCommand,
-            getMemoryGalleryQuery = mockGetGalleryQuery(),
-            getMemoryStatsQuery = mockGetStatsQuery(),
-            createMemoryQuizCommand = mockCreateQuizCommand(),
-            generateMemoryQuizCommand = mockGenerateQuizCommand(),
-            getMemoryQuizQuery = mockGetQuizQuery(),
-            getTodayQuizQuery = mockGetTodayQuizQuery(),
-            submitMemoryQuizAttemptCommand = mockSubmitAttemptCommand(),
-        )
+        val controller = createController(uploadCommand = uploadCommand)
 
         val response = controller.uploadMemoryPhoto(
             principal = childPrincipal,
@@ -78,6 +69,83 @@ class MemoryControllerTest {
         assertEquals(parentId, capturedIn?.ownerUserId)
         assertEquals("Trip", response.data?.title)
         assertNull(response.error)
+    }
+
+    @Test
+    fun `generateMemoryQuizQuestions passes parentUserId and photoId`() {
+        var capturedIn: GenerateMemoryQuizQuestionsCommand.In? = null
+        val photoId = UUID.randomUUID()
+        val draftCommand = object : GenerateMemoryQuizQuestionsCommand {
+            override fun handle(command: GenerateMemoryQuizQuestionsCommand.In): GenerateMemoryQuizQuestionsCommand.Out {
+                capturedIn = command
+                return GenerateMemoryQuizQuestionsCommand.Out(
+                    questions = listOf(
+                        MemoryQuizDraftQuestion(
+                            id = UUID.randomUUID(),
+                            memoryPhotoId = command.memoryPhotoId,
+                            question = "이 사진은 어디서 찍었을까요?",
+                            sortOrder = 0,
+                        ),
+                    ),
+                )
+            }
+        }
+
+        val controller = createController(generateDraftCommand = draftCommand)
+        val response = controller.generateMemoryQuizQuestions(
+            principal = childPrincipal,
+            id = photoId,
+        )
+
+        assertEquals(photoId, capturedIn?.memoryPhotoId)
+        assertEquals(parentId, capturedIn?.ownerUserId)
+        assertEquals(1, response.data?.size)
+        assertEquals("이 사진은 어디서 찍었을까요?", response.data?.get(0)?.question)
+    }
+
+    @Test
+    fun `completeMemoryQuizWithAnswers passes answers and ownerId`() {
+        var capturedIn: CompleteMemoryQuizWithAnswersCommand.In? = null
+        val photoId = UUID.randomUUID()
+        val questionId = UUID.randomUUID()
+        val completeCommand = object : CompleteMemoryQuizWithAnswersCommand {
+            override fun handle(command: CompleteMemoryQuizWithAnswersCommand.In): CompleteMemoryQuizWithAnswersCommand.Out {
+                capturedIn = command
+                return CompleteMemoryQuizWithAnswersCommand.Out(
+                    questions = listOf(
+                        MemoryQuizQuestion(
+                            id = UUID.randomUUID(),
+                            memoryPhotoId = command.memoryPhotoId,
+                            question = "이 사진은 어디서 찍었을까요?",
+                            options = listOf("제주도", "부산", "경주", "강릉"),
+                            correctOptionIndex = 0,
+                            sortOrder = 0,
+                        ),
+                    ),
+                )
+            }
+        }
+
+        val controller = createController(completeCommand = completeCommand)
+        val response = controller.completeMemoryQuizWithAnswers(
+            principal = childPrincipal,
+            id = photoId,
+            request = CompleteMemoryQuizWithAnswersRequest(
+                answers = listOf(
+                    DraftAnswerRequest(
+                        questionId = questionId,
+                        answer = "제주도",
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(photoId, capturedIn?.memoryPhotoId)
+        assertEquals(parentId, capturedIn?.ownerUserId)
+        assertEquals(questionId, capturedIn?.answers?.get(0)?.draftQuestionId)
+        assertEquals("제주도", capturedIn?.answers?.get(0)?.answer)
+        assertEquals(1, response.data?.size)
+        assertEquals(4, response.data?.get(0)?.options?.size)
     }
 
     @Test
@@ -101,17 +169,7 @@ class MemoryControllerTest {
             }
         }
 
-        val controller = MemoryController(
-            uploadMemoryPhotoCommand = mockUploadCommand(),
-            getMemoryGalleryQuery = galleryQuery,
-            getMemoryStatsQuery = mockGetStatsQuery(),
-            createMemoryQuizCommand = mockCreateQuizCommand(),
-            generateMemoryQuizCommand = mockGenerateQuizCommand(),
-            getMemoryQuizQuery = mockGetQuizQuery(),
-            getTodayQuizQuery = mockGetTodayQuizQuery(),
-            submitMemoryQuizAttemptCommand = mockSubmitAttemptCommand(),
-        )
-
+        val controller = createController(galleryQuery = galleryQuery)
         val response = controller.getMemoryGallery(principal = parentPrincipal)
 
         assertEquals(parentId, queriedOwnerId)
@@ -132,17 +190,7 @@ class MemoryControllerTest {
             }
         }
 
-        val controller = MemoryController(
-            uploadMemoryPhotoCommand = mockUploadCommand(),
-            getMemoryGalleryQuery = mockGetGalleryQuery(),
-            getMemoryStatsQuery = mockGetStatsQuery(),
-            createMemoryQuizCommand = mockCreateQuizCommand(),
-            generateMemoryQuizCommand = mockGenerateQuizCommand(),
-            getMemoryQuizQuery = mockGetQuizQuery(),
-            getTodayQuizQuery = mockGetTodayQuizQuery(),
-            submitMemoryQuizAttemptCommand = submitCommand,
-        )
-
+        val controller = createController(submitCommand = submitCommand)
         val photoId = UUID.randomUUID()
         val response = controller.submitQuizAttempt(
             principal = parentPrincipal,
@@ -156,6 +204,30 @@ class MemoryControllerTest {
         assertEquals(2, response.data?.correctCount)
         assertEquals(2, response.data?.totalCount)
     }
+
+    private fun createController(
+        uploadCommand: UploadMemoryPhotoCommand = mockUploadCommand(),
+        galleryQuery: GetMemoryGalleryQuery = mockGetGalleryQuery(),
+        statsQuery: GetMemoryStatsQuery = mockGetStatsQuery(),
+        createQuizCommand: CreateMemoryQuizCommand = mockCreateQuizCommand(),
+        generateDraftCommand: GenerateMemoryQuizQuestionsCommand = mockGenerateDraftCommand(),
+        completeCommand: CompleteMemoryQuizWithAnswersCommand = mockCompleteCommand(),
+        getDraftQuery: GetMemoryQuizDraftQuestionsQuery = mockGetDraftQuery(),
+        quizQuery: GetMemoryQuizQuery = mockGetQuizQuery(),
+        todayQuery: GetTodayQuizQuery = mockGetTodayQuizQuery(),
+        submitCommand: SubmitMemoryQuizAttemptCommand = mockSubmitAttemptCommand(),
+    ) = MemoryController(
+        uploadMemoryPhotoCommand = uploadCommand,
+        getMemoryGalleryQuery = galleryQuery,
+        getMemoryStatsQuery = statsQuery,
+        createMemoryQuizCommand = createQuizCommand,
+        generateMemoryQuizQuestionsCommand = generateDraftCommand,
+        completeMemoryQuizWithAnswersCommand = completeCommand,
+        getMemoryQuizDraftQuestionsQuery = getDraftQuery,
+        getMemoryQuizQuery = quizQuery,
+        getTodayQuizQuery = todayQuery,
+        submitMemoryQuizAttemptCommand = submitCommand,
+    )
 
     private fun mockUploadCommand() = object : UploadMemoryPhotoCommand {
         override fun handle(command: UploadMemoryPhotoCommand.In): UploadMemoryPhotoCommand.Out =
@@ -185,9 +257,19 @@ class MemoryControllerTest {
             CreateMemoryQuizCommand.Out(questions = emptyList())
     }
 
-    private fun mockGenerateQuizCommand() = object : GenerateMemoryQuizCommand {
-        override fun handle(command: GenerateMemoryQuizCommand.In): GenerateMemoryQuizCommand.Out =
-            GenerateMemoryQuizCommand.Out(questions = emptyList())
+    private fun mockGenerateDraftCommand() = object : GenerateMemoryQuizQuestionsCommand {
+        override fun handle(command: GenerateMemoryQuizQuestionsCommand.In): GenerateMemoryQuizQuestionsCommand.Out =
+            GenerateMemoryQuizQuestionsCommand.Out(questions = emptyList())
+    }
+
+    private fun mockCompleteCommand() = object : CompleteMemoryQuizWithAnswersCommand {
+        override fun handle(command: CompleteMemoryQuizWithAnswersCommand.In): CompleteMemoryQuizWithAnswersCommand.Out =
+            CompleteMemoryQuizWithAnswersCommand.Out(questions = emptyList())
+    }
+
+    private fun mockGetDraftQuery() = object : GetMemoryQuizDraftQuestionsQuery {
+        override fun handle(query: GetMemoryQuizDraftQuestionsQuery.In): GetMemoryQuizDraftQuestionsQuery.Out =
+            GetMemoryQuizDraftQuestionsQuery.Out(questions = emptyList())
     }
 
     private fun mockGetQuizQuery() = object : GetMemoryQuizQuery {

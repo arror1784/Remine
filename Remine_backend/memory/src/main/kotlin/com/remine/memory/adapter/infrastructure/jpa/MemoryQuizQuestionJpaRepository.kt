@@ -5,4 +5,5 @@ import java.util.UUID
 
 interface MemoryQuizQuestionJpaRepository : JpaRepository<MemoryQuizQuestionJpaEntity, UUID> {
     fun findAllByMemoryPhotoIdOrderBySortOrderAsc(memoryPhotoId: UUID): List<MemoryQuizQuestionJpaEntity>
+    fun findAllByMemoryPhotoId(memoryPhotoId: UUID): List<MemoryQuizQuestionJpaEntity>
 }
