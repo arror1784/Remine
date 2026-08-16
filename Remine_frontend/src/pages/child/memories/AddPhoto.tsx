@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Screen from '@/components/Screen'
+import BottomSheet from '@/components/BottomSheet'
 
 export default function AddMemoryPhoto() {
   const navigate = useNavigate()
@@ -8,8 +8,8 @@ export default function AddMemoryPhoto() {
   const [when, setWhen] = useState('')
 
   return (
-    <Screen>
-      <div className="flex items-center justify-between px-5 pt-5">
+    <BottomSheet>
+      <div className="flex items-center justify-between">
         <h1 className="text-[20px] font-semibold text-[#1a1a1a]">추억 사진 추가하기</h1>
         <button
           type="button"
@@ -20,7 +20,7 @@ export default function AddMemoryPhoto() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-5 px-5 pb-10 pt-5">
+      <div className="flex flex-col gap-5">
         <button
           type="button"
           className="flex flex-col items-center gap-1.5 rounded-2xl border-2 border-dashed border-remine-pink bg-[#fff7cc] py-8"
@@ -59,6 +59,7 @@ export default function AddMemoryPhoto() {
           어머니께 전달하기
         </button>
       </div>
-    </Screen>
+    </BottomSheet>
   )
 }
+

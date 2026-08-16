@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
@@ -16,6 +16,8 @@ const SHARED_PHOTOS = [
 ]
 
 export default function ChildFamily() {
+  const location = useLocation()
+
   return (
     <Screen footer={<BottomTabBar role="child" accentColor="#37ceff" />}>
       <ModeBar label="자녀 모드 — 지영님" color="#37ceff" dark />
@@ -88,6 +90,7 @@ export default function ChildFamily() {
             ))}
             <Link
               to="/child/memories/add"
+              state={{ backgroundLocation: location }}
               className="flex w-[110px] shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-[#ebebeb] text-remine-pink"
             >
               <span className="text-xl">＋</span>

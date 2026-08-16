@@ -17,9 +17,10 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
   const [seconds, setSeconds] = useState(0)
 
   useEffect(() => {
+    if (state !== 'connecting') return
     const toConnected = setTimeout(() => setState('connected'), 2000)
     return () => clearTimeout(toConnected)
-  }, [])
+  }, [state])
 
   useEffect(() => {
     if (state !== 'connected') return

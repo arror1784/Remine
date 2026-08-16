@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
@@ -24,6 +24,8 @@ const SUGGESTIONS = [
 ]
 
 export default function ParentToday() {
+  const location = useLocation()
+
   return (
     <Screen footer={<BottomTabBar role="parent" accentColor="#ff42ad" />}>
       <ModeBar label="부모님 모드 — 윤정아님" color="#ff42ad" />
@@ -96,6 +98,7 @@ export default function ParentToday() {
               </div>
               <Link
                 to={s.to}
+                state={{ backgroundLocation: location }}
                 className="flex h-10 shrink-0 items-center justify-center rounded-xl bg-[#fff7cc] px-4 text-[15px] font-semibold text-[#1a1a1a]"
               >
                 시작

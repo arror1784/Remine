@@ -33,7 +33,7 @@ export default function ParentMyPage() {
 
   return (
     <Screen>
-      <div className="flex items-center justify-between px-5 pt-5">
+      <div className="flex items-center justify-between px-5 pt-[max(30px,env(safe-area-inset-top))]">
         <h1 className="text-[22px] font-semibold text-[#1a1a1a]">마이페이지</h1>
         <button
           type="button"

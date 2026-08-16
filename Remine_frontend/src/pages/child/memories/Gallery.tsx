@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
@@ -13,13 +13,19 @@ const PHOTOS = [
 ]
 
 export default function ChildMemoryGallery() {
+  const location = useLocation()
+
   return (
     <Screen footer={<BottomTabBar role="child" accentColor="#37ceff" />}>
       <ModeBar label="자녀 모드 — 지영님" color="#37ceff" dark />
 
       <div className="flex items-center justify-between px-5 py-3.5">
         <h1 className="text-[22px] font-semibold text-[#1a1a1a]">추억 앨범</h1>
-        <Link to="/child/memories/add" className="h-[38px] rounded-full bg-remine-blue px-4 text-[15px] font-semibold leading-[38px] text-white">
+        <Link
+          to="/child/memories/add"
+          state={{ backgroundLocation: location }}
+          className="h-[38px] rounded-full bg-remine-blue px-4 text-[15px] font-semibold leading-[38px] text-white"
+        >
           ＋ 사진 추가
         </Link>
       </div>
@@ -74,6 +80,7 @@ export default function ChildMemoryGallery() {
 
         <Link
           to="/child/memories/add"
+          state={{ backgroundLocation: location }}
           className="flex h-[52px] items-center justify-center gap-2 rounded-2xl bg-[#1a1a1a] text-[16px] font-semibold text-white"
         >
           📷 새 추억 사진 추가하기

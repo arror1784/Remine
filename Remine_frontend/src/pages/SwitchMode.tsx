@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import type { Location } from 'react-router-dom'
 import BottomSheet from '@/components/BottomSheet'
 
 const PROFILES = [
@@ -8,7 +9,10 @@ const PROFILES = [
 
 export default function SwitchMode() {
   const navigate = useNavigate()
-  const current: string = window.location.pathname.startsWith('/child') ? 'child' : 'parent'
+  const location = useLocation()
+  const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation
+  const originPathname = backgroundLocation?.pathname ?? window.location.pathname
+  const current: string = originPathname.startsWith('/child') ? 'child' : 'parent'
 
   return (
     <BottomSheet>

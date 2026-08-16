@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
 import { BellIcon } from '@/components/icons/NavIcons'
+import { useNotificationStore } from '@/store/notifications'
 import springOuting from '@/assets/memories/family-trip.png'
 import birthdayCake from '@/assets/memories/birthday-cake.png'
 import grandchildWalk from '@/assets/memories/grandchild-walk.png'
@@ -31,6 +32,9 @@ const MEMORY_SHORTCUTS = [
 ]
 
 export default function ChildHome() {
+  const location = useLocation()
+  const unreadCount = useNotificationStore((state) => state.childNotifications.filter((n) => n.unread).length)
+
   return (
     <Screen footer={<BottomTabBar role="child" accentColor="#37ceff" />}>
       <ModeBar label="자녀 모드 — 지영님" color="#37ceff" dark />
@@ -40,9 +44,11 @@ export default function ChildHome() {
           Rem<span className="text-remine-pink">e</span>ine
         </span>
         <div className="flex items-center gap-2">
-          <Link to="/child/notifications" className="relative flex items-start p-1">
+          <Link to="/child/notifications" state={{ backgroundLocation: location }} className="relative flex items-start p-1">
             <BellIcon className="size-6 text-[#1a1a1a]" />
-            <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-pink" />
+            {unreadCount > 0 && (
+              <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-pink" />
+            )}
           </Link>
           <Link to="/child/mypage" className="flex size-9 items-center justify-center rounded-full bg-[#fff7cc] text-[14px]">
             👧

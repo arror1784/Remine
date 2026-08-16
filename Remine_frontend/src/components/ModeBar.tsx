@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 type ModeBarProps = {
   label: string
@@ -7,6 +7,8 @@ type ModeBarProps = {
 }
 
 export default function ModeBar({ label, color, dark }: ModeBarProps) {
+  const location = useLocation()
+
   return (
     <div className="flex items-center justify-between px-5 pb-2 pt-[62px]">
       <div
@@ -17,7 +19,12 @@ export default function ModeBar({ label, color, dark }: ModeBarProps) {
         <span className="text-[13px]" style={{ color: dark ? '#ffffff' : '#1a1a1a' }}>
           {label}
         </span>
-        <Link to="/switch-mode" className="ml-auto text-[12px]" style={{ color: dark ? 'rgba(255,255,255,0.4)' : '#9a9c91' }}>
+        <Link
+          to="/switch-mode"
+          state={{ backgroundLocation: location }}
+          className="ml-auto text-[12px]"
+          style={{ color: dark ? 'rgba(255,255,255,0.4)' : '#9a9c91' }}
+        >
           전환 ›
         </Link>
       </div>

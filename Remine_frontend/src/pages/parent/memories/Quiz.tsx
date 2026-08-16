@@ -23,7 +23,7 @@ export default function MemoryQuiz() {
 
   return (
     <Screen footer={!done && <BottomTabBar role="parent" accentColor="#ff42ad" />}>
-      <div className="flex items-center gap-3 px-5 pt-5">
+      <div className="flex items-center gap-3 px-5 pt-[max(30px,env(safe-area-inset-top))]">
         {!done && (
           <button type="button" onClick={() => navigate('/parent/memories')} className="text-[20px] text-[#1a1a1a]">
             ‹

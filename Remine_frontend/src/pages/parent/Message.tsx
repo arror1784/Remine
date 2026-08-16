@@ -27,14 +27,14 @@ export default function ParentMessage() {
   return (
     <Screen
       footer={
-        <div className="flex flex-col gap-2.5 border-t border-[#ebebeb] bg-white px-4 pb-4 pt-3">
-          <div className="flex gap-2 overflow-x-auto">
+        <div className="flex flex-col gap-2.5 border-t border-[#ebebeb] bg-white px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-3">
+          <div className="no-scrollbar flex gap-2 overflow-x-auto">
             {QUICK_REPLIES.map((reply) => (
               <button
                 key={reply}
                 type="button"
                 onClick={() => send(reply)}
-                className="shrink-0 whitespace-nowrap rounded-full bg-[#f2f2ee] px-3.5 py-2 text-[13px] text-[#1a1a1a]"
+                className="shrink-0 whitespace-nowrap rounded-full border border-[#ebebeb] bg-remine-bg px-3.5 py-2 text-[13px] text-[#1a1a1a]"
               >
                 {reply}
               </button>
@@ -45,13 +45,13 @@ export default function ParentMessage() {
               e.preventDefault()
               send(draft)
             }}
-            className="flex items-center gap-2"
+            className="flex items-center gap-3"
           >
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="직접 입력..."
-              className="h-12 flex-1 rounded-full bg-[#f2f2ee] px-4 text-[15px] focus:outline-none"
+              className="h-12 min-w-0 flex-1 rounded-full bg-[#f2f2ee] px-4 text-[15px] focus:outline-none"
             />
             <button type="submit" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-remine-pink text-white">
               ➤
@@ -60,7 +60,7 @@ export default function ParentMessage() {
         </div>
       }
     >
-      <div className="flex items-center gap-3 border-b border-[#ebebeb] bg-white px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-[#ebebeb] bg-white px-4 pb-3 pt-[max(30px,env(safe-area-inset-top))]">
         <button type="button" onClick={() => navigate(-1)} className="text-[20px] text-[#1a1a1a]">
           ‹
         </button>

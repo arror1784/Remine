@@ -1,8 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import BottomTabBar from '@/components/BottomTabBar'
 import ModeBar from '@/components/ModeBar'
 import { BellIcon } from '@/components/icons/NavIcons'
+import { useNotificationStore } from '@/store/notifications'
 import familyPhoto from '@/assets/memories/family-trip.png'
 
 const WEEK_PATTERN = [
@@ -23,6 +24,9 @@ const ACTIVITIES = [
 ]
 
 export default function ParentHome() {
+  const location = useLocation()
+  const unreadCount = useNotificationStore((state) => state.parentNotifications.filter((n) => n.unread).length)
+
   return (
     <Screen footer={<BottomTabBar role="parent" accentColor="#ff42ad" />}>
       <ModeBar label="부모님 모드 — 윤정아님" color="#ff42ad" />
@@ -32,9 +36,11 @@ export default function ParentHome() {
           Rem<span className="text-remine-pink">e</span>ine
         </span>
         <div className="flex items-center gap-2">
-          <Link to="/parent/notifications" className="relative flex items-start p-1">
+          <Link to="/parent/notifications" state={{ backgroundLocation: location }} className="relative flex items-start p-1">
             <BellIcon className="size-6 text-[#1a1a1a]" />
-            <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-pink" />
+            {unreadCount > 0 && (
+              <span className="absolute right-[6.75px] top-[4.7px] size-2 rounded-full border-2 border-remine-bg bg-remine-pink" />
+            )}
           </Link>
           <Link to="/parent/mypage" className="flex size-9 items-center justify-center rounded-full bg-[#fff7cc] text-[14px]">
             👩
@@ -118,6 +124,7 @@ export default function ParentHome() {
           <p className="pb-3 text-[15px] leading-[1.5] text-[#66695d]">걸음 수가 평소보다 적어요. 20분 가벼운 산책이 기분 전환에 도움이 돼요.</p>
           <Link
             to="/parent/reminders/walk"
+            state={{ backgroundLocation: location }}
             className="flex h-[52px] items-center justify-center rounded-2xl bg-[#1a1a1a] text-[17px] font-semibold text-white"
           >
             산책 시작하기
