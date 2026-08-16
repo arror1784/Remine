@@ -9,6 +9,7 @@ import com.remine.call.domain.CallLog
 import com.remine.call.domain.CallStats
 import com.remine.call.domain.CallStatus
 import com.remine.common.domain.exception.EntityNotFoundException
+import com.remine.common.domain.exception.ForbiddenException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -91,6 +92,38 @@ class CallServiceTest {
         assertThrows(EntityNotFoundException::class.java) {
             endService.handle(EndCallCommand.In(callId = UUID.randomUUID(), endedByUserId = UUID.randomUUID()))
         }
+    }
+
+    @Test
+    fun `end call throws ForbiddenException when caller is not a participant`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val endService = EndCallService(repo)
+
+        val created = startService.handle(
+            StartCallCommand.In(callerId = UUID.randomUUID(), calleeId = UUID.randomUUID()),
+        ).entity
+
+        assertThrows(ForbiddenException::class.java) {
+            endService.handle(EndCallCommand.In(callId = created.id, endedByUserId = UUID.randomUUID()))
+        }
+        assertEquals(CallStatus.CONNECTING, repo.storage.getValue(created.id).status)
+    }
+
+    @Test
+    fun `end call succeeds when the callee ends it`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val endService = EndCallService(repo)
+
+        val calleeId = UUID.randomUUID()
+        val created = startService.handle(
+            StartCallCommand.In(callerId = UUID.randomUUID(), calleeId = calleeId),
+        ).entity
+
+        val endedOut = endService.handle(EndCallCommand.In(callId = created.id, endedByUserId = calleeId))
+
+        assertEquals(CallStatus.ENDED, endedOut.entity.status)
     }
 
     @Test

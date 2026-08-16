@@ -10,6 +10,7 @@ interface CreateFamilyPostReplyCommand {
         val postId: UUID,
         val authorUserId: UUID,
         val body: String,
+        val pairUserIds: Set<UUID>,
     )
 
     data class Out(

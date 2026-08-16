@@ -163,6 +163,7 @@ class ActivityController(
             ToggleChecklistItemCommand.In(
                 checklistItemId = id,
                 done = request.done,
+                requestedByParentUserId = principal.parentUserId(),
             )
         )
         return ApiResponse.ok(ActivityChecklistItemResponse.from(out.entity))
@@ -177,6 +178,7 @@ class ActivityController(
             SendCheerCommand.In(
                 checklistItemId = id,
                 senderUserId = principal.userId,
+                requestedByParentUserId = principal.parentUserId(),
             )
         )
         return ApiResponse.ok(out.entity?.let { ActivityCheerResponse.from(it) })

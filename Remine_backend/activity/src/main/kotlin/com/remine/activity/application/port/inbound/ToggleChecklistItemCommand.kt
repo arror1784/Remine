@@ -9,6 +9,8 @@ interface ToggleChecklistItemCommand {
     data class In(
         val checklistItemId: UUID,
         val done: Boolean,
+        /** The parent whose checklist the caller is entitled to touch (the caller if PARENT, their paired parent if CHILD). */
+        val requestedByParentUserId: UUID,
     )
 
     data class Out(

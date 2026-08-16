@@ -56,14 +56,9 @@ class FamilyPostController(
         @RequestParam(name = "limit", required = false, defaultValue = "20")
         limit: Int,
     ): ApiResponse<List<PostWithViewerStateResponse>> {
-        val pairUserIds = setOfNotNull(
-            principal.userId,
-            runCatching { principal.parentUserId() }.getOrNull(),
-            principal.counterpartUserId()
-        )
         val result = getFamilyFeedQuery.handle(
             GetFamilyFeedQuery.In(
-                pairUserIds = pairUserIds,
+                pairUserIds = resolvePairUserIds(principal),
                 viewerUserId = principal.userId,
                 cursor = cursor,
                 limit = limit,
@@ -81,6 +76,7 @@ class FamilyPostController(
             ToggleFamilyPostLikeCommand.In(
                 postId = id,
                 userId = principal.userId,
+                pairUserIds = resolvePairUserIds(principal),
             )
         )
         return ApiResponse.ok(ToggleLikeResponse.from(result))
@@ -97,6 +93,7 @@ class FamilyPostController(
                 postId = id,
                 authorUserId = principal.userId,
                 body = request.body,
+                pairUserIds = resolvePairUserIds(principal),
             )
         )
         return ApiResponse.ok(FamilyPostReplyResponse.from(result.entity))
@@ -110,8 +107,15 @@ class FamilyPostController(
         val result = getFamilyPostRepliesQuery.handle(
             GetFamilyPostRepliesQuery.In(
                 postId = id,
+                pairUserIds = resolvePairUserIds(principal),
             )
         )
         return ApiResponse.ok(result.items.map { FamilyPostReplyResponse.from(it) })
     }
+
+    private fun resolvePairUserIds(principal: RemineUserPrincipal): Set<UUID> = setOfNotNull(
+        principal.userId,
+        runCatching { principal.parentUserId() }.getOrNull(),
+        principal.counterpartUserId(),
+    )
 }

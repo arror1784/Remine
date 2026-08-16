@@ -8,11 +8,13 @@ import com.remine.activity.application.port.outbound.ActivityChecklistItemReposi
 import com.remine.activity.domain.ActivityCheer
 import com.remine.activity.domain.ActivityChecklistItem
 import com.remine.common.domain.exception.EntityNotFoundException
+import com.remine.common.domain.exception.ForbiddenException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.UUID
 
 @Service
 @Transactional
@@ -26,6 +28,7 @@ class ActivityChecklistService(
     override fun handle(command: ToggleChecklistItemCommand.In): ToggleChecklistItemCommand.Out {
         val item = checklistItemRepository.findById(command.checklistItemId)
             ?: throw EntityNotFoundException("Checklist item not found: ${command.checklistItemId}")
+        requireOwnPair(item, command.requestedByParentUserId)
 
         val updated = item.copy(
             done = command.done,
@@ -39,6 +42,7 @@ class ActivityChecklistService(
     override fun handle(command: SendCheerCommand.In): SendCheerCommand.Out {
         val item = checklistItemRepository.findById(command.checklistItemId)
             ?: throw EntityNotFoundException("Checklist item not found: ${command.checklistItemId}")
+        requireOwnPair(item, command.requestedByParentUserId)
 
         val today = LocalDate.now()
         val existingCheers = cheerRepository.findByChecklistItemIdAndSenderUserId(item.id, command.senderUserId)
@@ -78,5 +82,11 @@ class ActivityChecklistService(
         }
         val saved = checklistItemRepository.saveAll(itemsToCreate)
         return GetChecklistQuery.Out(items = saved)
+    }
+
+    private fun requireOwnPair(item: ActivityChecklistItem, requestedByParentUserId: UUID) {
+        if (item.userId != requestedByParentUserId) {
+            throw ForbiddenException("Checklist item ${item.id} does not belong to your family")
+        }
     }
 }

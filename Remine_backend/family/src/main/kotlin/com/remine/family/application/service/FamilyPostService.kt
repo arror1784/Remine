@@ -1,6 +1,7 @@
 package com.remine.family.application.service
 
 import com.remine.common.domain.exception.EntityNotFoundException
+import com.remine.common.domain.exception.ForbiddenException
 import com.remine.family.application.port.inbound.CreateFamilyPostCommand
 import com.remine.family.application.port.inbound.CreateFamilyPostReplyCommand
 import com.remine.family.application.port.inbound.GetFamilyFeedQuery
@@ -15,6 +16,7 @@ import com.remine.family.domain.FamilyPostReply
 import com.remine.family.domain.PostWithViewerState
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 @Transactional(readOnly = true)
@@ -44,6 +46,7 @@ class FamilyPostService(
     override fun handle(command: ToggleFamilyPostLikeCommand.In): ToggleFamilyPostLikeCommand.Out {
         val post = postRepository.findById(command.postId)
             ?: throw EntityNotFoundException("Family post not found with id: ${command.postId}")
+        requireOwnPair(post, command.pairUserIds)
 
         val existingLike = likeRepository.findByPostIdAndUserId(command.postId, command.userId)
         return if (existingLike != null) {
@@ -65,9 +68,10 @@ class FamilyPostService(
 
     @Transactional
     override fun handle(command: CreateFamilyPostReplyCommand.In): CreateFamilyPostReplyCommand.Out {
-        if (!postRepository.existsById(command.postId)) {
-            throw EntityNotFoundException("Family post not found with id: ${command.postId}")
-        }
+        val post = postRepository.findById(command.postId)
+            ?: throw EntityNotFoundException("Family post not found with id: ${command.postId}")
+        requireOwnPair(post, command.pairUserIds)
+
         val reply = FamilyPostReply(
             postId = command.postId,
             authorUserId = command.authorUserId,
@@ -108,10 +112,17 @@ class FamilyPostService(
     }
 
     override fun handle(query: GetFamilyPostRepliesQuery.In): GetFamilyPostRepliesQuery.Out {
-        if (!postRepository.existsById(query.postId)) {
-            throw EntityNotFoundException("Family post not found with id: ${query.postId}")
-        }
+        val post = postRepository.findById(query.postId)
+            ?: throw EntityNotFoundException("Family post not found with id: ${query.postId}")
+        requireOwnPair(post, query.pairUserIds)
+
         val replies = replyRepository.findByPostIdOrderByCreatedAtAsc(query.postId)
         return GetFamilyPostRepliesQuery.Out(items = replies)
+    }
+
+    private fun requireOwnPair(post: FamilyPost, pairUserIds: Set<UUID>) {
+        if (post.authorUserId !in pairUserIds) {
+            throw ForbiddenException("Family post ${post.id} does not belong to your family")
+        }
     }
 }

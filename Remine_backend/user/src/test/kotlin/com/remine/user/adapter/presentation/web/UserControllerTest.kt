@@ -2,7 +2,6 @@ package com.remine.user.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
 import com.remine.auth.domain.Role
-import com.remine.common.domain.exception.InvalidRequestException
 import com.remine.user.application.port.inbound.GetMyProfileQuery
 import com.remine.user.application.port.inbound.GetPairedUserQuery
 import com.remine.user.application.port.inbound.PairWithInviteCodeCommand
@@ -10,9 +9,10 @@ import com.remine.user.application.port.inbound.SignUpCommand
 import com.remine.user.application.port.inbound.UpdateProfileCommand
 import com.remine.user.domain.User
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.springframework.security.access.prepost.PreAuthorize
 import java.util.UUID
 
 class UserControllerTest {
@@ -103,19 +103,14 @@ class UserControllerTest {
     }
 
     @Test
-    fun `pairWithInviteCode throws when called by PARENT`() {
-        val parentPrincipal = RemineUserPrincipal(
-            userId = sampleParentId,
-            role = Role.PARENT,
-            pairedUserId = null,
-        )
+    fun `pairWithInviteCode is restricted to CHILD role`() {
+        val preAuthorize = UserController::class.java
+            .methods
+            .single { it.name == "pairWithInviteCode" }
+            .getAnnotation(PreAuthorize::class.java)
 
-        assertThrows<InvalidRequestException> {
-            userController.pairWithInviteCode(
-                principal = parentPrincipal,
-                request = PairingRequest(inviteCode = "REMIND-1234"),
-            )
-        }
+        assertNotNull(preAuthorize)
+        assertEquals("hasRole('CHILD')", preAuthorize.value)
     }
 
     @Test

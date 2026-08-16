@@ -9,6 +9,8 @@ interface SendCheerCommand {
     data class In(
         val checklistItemId: UUID,
         val senderUserId: UUID,
+        /** The parent whose checklist the caller is entitled to touch (the caller if PARENT, their paired parent if CHILD). */
+        val requestedByParentUserId: UUID,
     )
 
     data class Out(

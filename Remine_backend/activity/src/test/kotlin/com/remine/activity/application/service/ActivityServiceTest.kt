@@ -15,8 +15,10 @@ import com.remine.activity.domain.ActivityCheer
 import com.remine.activity.domain.ActivityChecklistItem
 import com.remine.activity.domain.DailyActivityStat
 import com.remine.common.domain.exception.EntityNotFoundException
+import com.remine.common.domain.exception.ForbiddenException
 import com.remine.common.domain.exception.InvalidRequestException
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -293,14 +295,35 @@ class ActivityServiceTest {
         assertEquals(listOf("SLEEP", "BREAKFAST", "WALK", "QUIZ"), checklist.items.map { it.type })
 
         val firstItem = checklist.items[0]
-        val toggled = service.handle(ToggleChecklistItemCommand.In(firstItem.id, true))
+        val toggled = service.handle(ToggleChecklistItemCommand.In(firstItem.id, true, userId))
         assertTrue(toggled.entity.done)
         assertNotNull(toggled.entity.completedAt)
 
-        val cheer1 = service.handle(SendCheerCommand.In(firstItem.id, senderId))
+        val cheer1 = service.handle(SendCheerCommand.In(firstItem.id, senderId, userId))
         assertNotNull(cheer1.entity)
 
-        val cheer2 = service.handle(SendCheerCommand.In(firstItem.id, senderId))
+        val cheer2 = service.handle(SendCheerCommand.In(firstItem.id, senderId, userId))
         assertNull(cheer2.entity) // idempotent on same day
+    }
+
+    @Test
+    fun `checklist toggle and cheer are rejected for another family's checklist item`() {
+        val checklistRepo = InMemoryChecklistItemRepository()
+        val cheerRepo = InMemoryCheerRepository()
+        val service = ActivityChecklistService(checklistRepo, cheerRepo)
+        val parentId = UUID.randomUUID()
+        val outsiderId = UUID.randomUUID()
+
+        val item = service.handle(GetChecklistQuery.In(parentId, LocalDate.now())).items.first()
+
+        assertThrows<ForbiddenException> {
+            service.handle(ToggleChecklistItemCommand.In(item.id, true, outsiderId))
+        }
+        assertThrows<ForbiddenException> {
+            service.handle(SendCheerCommand.In(item.id, outsiderId, outsiderId))
+        }
+
+        assertFalse(checklistRepo.findById(item.id)!!.done)
+        assertTrue(cheerRepo.store.isEmpty())
     }
 }

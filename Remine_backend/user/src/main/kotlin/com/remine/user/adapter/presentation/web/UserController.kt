@@ -1,14 +1,13 @@
 package com.remine.user.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
-import com.remine.auth.domain.Role
-import com.remine.common.domain.exception.InvalidRequestException
 import com.remine.common.web.ApiResponse
 import com.remine.user.application.port.inbound.GetMyProfileQuery
 import com.remine.user.application.port.inbound.GetPairedUserQuery
 import com.remine.user.application.port.inbound.PairWithInviteCodeCommand
 import com.remine.user.application.port.inbound.SignUpCommand
 import com.remine.user.application.port.inbound.UpdateProfileCommand
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -70,14 +69,12 @@ class UserController(
         return ApiResponse.ok(UserResponse.from(out.entity))
     }
 
+    @PreAuthorize("hasRole('CHILD')")
     @PostMapping("/me/pairing")
     fun pairWithInviteCode(
         @AuthenticationPrincipal principal: RemineUserPrincipal,
         @Valid @RequestBody request: PairingRequest,
     ): ApiResponse<PairingResponse> {
-        if (principal.role == Role.PARENT) {
-            throw InvalidRequestException("Only child accounts can initiate pairing via invite code")
-        }
         val out = pairWithInviteCodeCommand.handle(
             PairWithInviteCodeCommand.In(
                 childUserId = principal.userId,

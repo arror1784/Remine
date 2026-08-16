@@ -95,6 +95,7 @@ class MemoryController(
                         correctOptionIndex = it.correctOptionIndex,
                     )
                 },
+                ownerUserId = principal.parentUserId(),
             ),
         )
         return ApiResponse.ok(result.questions.map { MemoryQuizQuestionResponse.from(it) })
@@ -108,6 +109,7 @@ class MemoryController(
         val result = getMemoryQuizQuery.handle(
             GetMemoryQuizQuery.In(
                 memoryPhotoId = id,
+                ownerUserId = principal.parentUserId(),
             ),
         )
         return ApiResponse.ok(
@@ -146,6 +148,7 @@ class MemoryController(
                 memoryPhotoId = id,
                 respondentUserId = principal.userId,
                 answers = request.answers,
+                ownerUserId = principal.parentUserId(),
             ),
         )
         return ApiResponse.ok(

@@ -20,6 +20,7 @@ class CreateMemoryQuizService(
     override fun handle(command: CreateMemoryQuizCommand.In): CreateMemoryQuizCommand.Out {
         val photo = memoryPhotoRepository.findById(command.memoryPhotoId)
             ?: throw EntityNotFoundException("Memory photo not found: ${command.memoryPhotoId}")
+        requireOwnedByCaller(photo, command.ownerUserId)
 
         if (command.questions.isEmpty()) {
             throw InvalidRequestException("Quiz questions list cannot be empty")

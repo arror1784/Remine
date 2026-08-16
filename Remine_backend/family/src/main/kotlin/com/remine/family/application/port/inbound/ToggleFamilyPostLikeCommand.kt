@@ -8,6 +8,7 @@ interface ToggleFamilyPostLikeCommand {
     data class In(
         val postId: UUID,
         val userId: UUID,
+        val pairUserIds: Set<UUID>,
     )
 
     data class Out(

@@ -18,6 +18,7 @@ class GetMemoryQuizService(
     override fun handle(query: GetMemoryQuizQuery.In): GetMemoryQuizQuery.Out {
         val photo = memoryPhotoRepository.findById(query.memoryPhotoId)
             ?: throw EntityNotFoundException("Memory photo not found: ${query.memoryPhotoId}")
+        requireOwnedByCaller(photo, query.ownerUserId)
 
         val questions = memoryQuizQuestionRepository.findAllByMemoryPhotoIdOrderBySortOrderAsc(query.memoryPhotoId)
         val questionViews = questions.map {

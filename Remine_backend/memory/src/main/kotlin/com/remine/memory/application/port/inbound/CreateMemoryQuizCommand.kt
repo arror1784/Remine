@@ -15,6 +15,8 @@ interface CreateMemoryQuizCommand {
     data class In(
         val memoryPhotoId: UUID,
         val questions: List<QuestionIn>,
+        /** The parent the caller is acting for — must match the photo's owner. */
+        val ownerUserId: UUID,
     )
 
     data class Out(

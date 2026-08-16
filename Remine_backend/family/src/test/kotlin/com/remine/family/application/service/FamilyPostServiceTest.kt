@@ -1,6 +1,7 @@
 package com.remine.family.application.service
 
 import com.remine.common.domain.exception.EntityNotFoundException
+import com.remine.common.domain.exception.ForbiddenException
 import com.remine.family.application.port.inbound.CreateFamilyPostCommand
 import com.remine.family.application.port.inbound.CreateFamilyPostReplyCommand
 import com.remine.family.application.port.inbound.GetFamilyFeedQuery
@@ -64,7 +65,9 @@ class FamilyPostServiceTest {
         val viewerId = UUID.randomUUID()
         val post = postRepository.save(FamilyPost(authorUserId = authorId, body = "Test post"))
 
-        val result = service.handle(ToggleFamilyPostLikeCommand.In(postId = post.id, userId = viewerId))
+        val result = service.handle(
+            ToggleFamilyPostLikeCommand.In(postId = post.id, userId = viewerId, pairUserIds = setOf(authorId, viewerId)),
+        )
 
         assertTrue(result.liked)
         assertEquals(1, result.likeCount)
@@ -78,7 +81,9 @@ class FamilyPostServiceTest {
         val post = postRepository.save(FamilyPost(authorUserId = authorId, body = "Test post", likeCount = 1))
         likeRepository.save(FamilyPostLike(postId = post.id, userId = viewerId))
 
-        val result = service.handle(ToggleFamilyPostLikeCommand.In(postId = post.id, userId = viewerId))
+        val result = service.handle(
+            ToggleFamilyPostLikeCommand.In(postId = post.id, userId = viewerId, pairUserIds = setOf(authorId, viewerId)),
+        )
 
         assertFalse(result.liked)
         assertEquals(0, result.likeCount)
@@ -91,7 +96,13 @@ class FamilyPostServiceTest {
         val userId = UUID.randomUUID()
 
         assertThrows<EntityNotFoundException> {
-            service.handle(ToggleFamilyPostLikeCommand.In(postId = nonExistentPostId, userId = userId))
+            service.handle(
+                ToggleFamilyPostLikeCommand.In(
+                    postId = nonExistentPostId,
+                    userId = userId,
+                    pairUserIds = setOf(userId),
+                ),
+            )
         }
     }
 
@@ -105,6 +116,7 @@ class FamilyPostServiceTest {
                 postId = post.id,
                 authorUserId = authorId,
                 body = "Great memory!",
+                pairUserIds = setOf(authorId),
             )
         )
 
@@ -122,6 +134,7 @@ class FamilyPostServiceTest {
                     postId = UUID.randomUUID(),
                     authorUserId = UUID.randomUUID(),
                     body = "Reply to nowhere",
+                    pairUserIds = setOf(UUID.randomUUID()),
                 )
             )
         }
@@ -172,15 +185,83 @@ class FamilyPostServiceTest {
 
     @Test
     fun `get replies returns replies for post`() {
-        val post = postRepository.save(FamilyPost(authorUserId = UUID.randomUUID(), body = "Test"))
+        val authorId = UUID.randomUUID()
+        val post = postRepository.save(FamilyPost(authorUserId = authorId, body = "Test"))
         replyRepository.save(FamilyPostReply(postId = post.id, authorUserId = UUID.randomUUID(), body = "First"))
         replyRepository.save(FamilyPostReply(postId = post.id, authorUserId = UUID.randomUUID(), body = "Second"))
 
-        val result = service.handle(GetFamilyPostRepliesQuery.In(postId = post.id))
+        val result = service.handle(
+            GetFamilyPostRepliesQuery.In(postId = post.id, pairUserIds = setOf(authorId)),
+        )
 
         assertEquals(2, result.items.size)
         assertEquals("First", result.items[0].body)
         assertEquals("Second", result.items[1].body)
+    }
+
+    @Test
+    fun `toggle like throws ForbiddenException when post belongs to another family`() {
+        val outsiderId = UUID.randomUUID()
+        val post = postRepository.save(FamilyPost(authorUserId = UUID.randomUUID(), body = "Other family's post"))
+
+        assertThrows<ForbiddenException> {
+            service.handle(
+                ToggleFamilyPostLikeCommand.In(
+                    postId = post.id,
+                    userId = outsiderId,
+                    pairUserIds = setOf(outsiderId),
+                ),
+            )
+        }
+        assertNull(likeRepository.findByPostIdAndUserId(post.id, outsiderId))
+    }
+
+    @Test
+    fun `create reply throws ForbiddenException when post belongs to another family`() {
+        val outsiderId = UUID.randomUUID()
+        val post = postRepository.save(FamilyPost(authorUserId = UUID.randomUUID(), body = "Other family's post"))
+
+        assertThrows<ForbiddenException> {
+            service.handle(
+                CreateFamilyPostReplyCommand.In(
+                    postId = post.id,
+                    authorUserId = outsiderId,
+                    body = "Intruding",
+                    pairUserIds = setOf(outsiderId),
+                ),
+            )
+        }
+        assertTrue(replyRepository.findByPostIdOrderByCreatedAtAsc(post.id).isEmpty())
+    }
+
+    @Test
+    fun `get replies throws ForbiddenException when post belongs to another family`() {
+        val outsiderId = UUID.randomUUID()
+        val post = postRepository.save(FamilyPost(authorUserId = UUID.randomUUID(), body = "Other family's post"))
+        replyRepository.save(FamilyPostReply(postId = post.id, authorUserId = UUID.randomUUID(), body = "Private"))
+
+        assertThrows<ForbiddenException> {
+            service.handle(
+                GetFamilyPostRepliesQuery.In(postId = post.id, pairUserIds = setOf(outsiderId)),
+            )
+        }
+    }
+
+    @Test
+    fun `paired counterpart may act on a post authored by the other side of the pair`() {
+        val parentId = UUID.randomUUID()
+        val childId = UUID.randomUUID()
+        val post = postRepository.save(FamilyPost(authorUserId = parentId, body = "Parent post"))
+
+        val result = service.handle(
+            ToggleFamilyPostLikeCommand.In(
+                postId = post.id,
+                userId = childId,
+                pairUserIds = setOf(childId, parentId),
+            ),
+        )
+
+        assertTrue(result.liked)
     }
 
     private class FakePostRepository : FamilyPostRepositoryPort {

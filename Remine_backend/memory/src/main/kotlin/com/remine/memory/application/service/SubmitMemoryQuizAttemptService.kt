@@ -20,8 +20,9 @@ class SubmitMemoryQuizAttemptService(
 ) : SubmitMemoryQuizAttemptCommand {
 
     override fun handle(command: SubmitMemoryQuizAttemptCommand.In): SubmitMemoryQuizAttemptCommand.Out {
-        memoryPhotoRepository.findById(command.memoryPhotoId)
+        val photo = memoryPhotoRepository.findById(command.memoryPhotoId)
             ?: throw EntityNotFoundException("Memory photo not found: ${command.memoryPhotoId}")
+        requireOwnedByCaller(photo, command.ownerUserId)
 
         val questions = memoryQuizQuestionRepository.findAllByMemoryPhotoIdOrderBySortOrderAsc(command.memoryPhotoId)
         if (questions.isEmpty()) {

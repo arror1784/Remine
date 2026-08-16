@@ -8,6 +8,7 @@ interface GetFamilyPostRepliesQuery {
 
     data class In(
         val postId: UUID,
+        val pairUserIds: Set<UUID>,
     )
 
     data class Out(

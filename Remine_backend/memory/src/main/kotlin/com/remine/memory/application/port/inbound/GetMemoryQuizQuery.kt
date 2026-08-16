@@ -9,6 +9,8 @@ interface GetMemoryQuizQuery {
 
     data class In(
         val memoryPhotoId: UUID,
+        /** The parent the caller is acting for — must match the photo's owner. */
+        val ownerUserId: UUID,
     )
 
     data class Out(

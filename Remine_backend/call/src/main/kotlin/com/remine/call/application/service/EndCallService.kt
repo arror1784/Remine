@@ -4,6 +4,7 @@ import com.remine.call.application.port.inbound.EndCallCommand
 import com.remine.call.application.port.outbound.CallLogRepositoryPort
 import com.remine.call.domain.CallStatus
 import com.remine.common.domain.exception.EntityNotFoundException
+import com.remine.common.domain.exception.ForbiddenException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
@@ -18,6 +19,10 @@ class EndCallService(
     override fun handle(command: EndCallCommand.In): EndCallCommand.Out {
         val existing = callLogRepositoryPort.findById(command.callId)
             ?: throw EntityNotFoundException("Call log not found with id: ${command.callId}")
+
+        if (command.endedByUserId != existing.callerId && command.endedByUserId != existing.calleeId) {
+            throw ForbiddenException("Only a participant of the call can end it")
+        }
 
         val endedAt = Instant.now()
         val durationSeconds = Duration.between(existing.startedAt, endedAt).toSeconds().toInt().coerceAtLeast(0)

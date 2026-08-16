@@ -1,6 +1,7 @@
 package com.remine.memory.application.service
 
 import com.remine.common.domain.exception.EntityNotFoundException
+import com.remine.common.domain.exception.ForbiddenException
 import com.remine.common.domain.exception.InvalidRequestException
 import com.remine.memory.application.port.inbound.CreateMemoryQuizCommand
 import com.remine.memory.application.port.inbound.GetMemoryGalleryQuery
@@ -117,9 +118,10 @@ class MemoryServicesTest {
     fun `CreateMemoryQuizService saves questions and sets status to QUIZ_ACTIVE`() {
         val service = CreateMemoryQuizService(photoRepository, questionRepository)
         val photoId = UUID.randomUUID()
+        val ownerId = UUID.randomUUID()
         val photo = MemoryPhoto(
             id = photoId,
-            ownerUserId = UUID.randomUUID(),
+            ownerUserId = ownerId,
             uploadedByUserId = UUID.randomUUID(),
             title = "Test",
             photoUrl = "url",
@@ -138,6 +140,7 @@ class MemoryServicesTest {
                         correctOptionIndex = 2,
                     ),
                 ),
+                ownerUserId = ownerId,
             ),
         )
 
@@ -166,6 +169,7 @@ class MemoryServicesTest {
                             correctOptionIndex = 0,
                         ),
                     ),
+                    ownerUserId = UUID.randomUUID(),
                 ),
             )
         }
@@ -175,9 +179,10 @@ class MemoryServicesTest {
     fun `CreateMemoryQuizService throws when questions list is empty`() {
         val service = CreateMemoryQuizService(photoRepository, questionRepository)
         val photoId = UUID.randomUUID()
+        val ownerId = UUID.randomUUID()
         val photo = MemoryPhoto(
             id = photoId,
-            ownerUserId = UUID.randomUUID(),
+            ownerUserId = ownerId,
             uploadedByUserId = UUID.randomUUID(),
             title = "Test",
             photoUrl = "url",
@@ -190,6 +195,7 @@ class MemoryServicesTest {
                 CreateMemoryQuizCommand.In(
                     memoryPhotoId = photoId,
                     questions = emptyList(),
+                    ownerUserId = ownerId,
                 ),
             )
         }
@@ -200,9 +206,10 @@ class MemoryServicesTest {
         val service = SubmitMemoryQuizAttemptService(photoRepository, questionRepository, attemptRepository)
         val photoId = UUID.randomUUID()
         val userId = UUID.randomUUID()
+        val ownerId = UUID.randomUUID()
         val photo = MemoryPhoto(
             id = photoId,
-            ownerUserId = UUID.randomUUID(),
+            ownerUserId = ownerId,
             uploadedByUserId = UUID.randomUUID(),
             title = "Test",
             photoUrl = "url",
@@ -235,6 +242,7 @@ class MemoryServicesTest {
                 memoryPhotoId = photoId,
                 respondentUserId = userId,
                 answers = listOf(0, 1), // First correct, second wrong
+                ownerUserId = ownerId,
             ),
         )
 
@@ -284,9 +292,10 @@ class MemoryServicesTest {
     fun `GetMemoryQuizService does not leak correctOptionIndex in QuestionView`() {
         val service = GetMemoryQuizService(photoRepository, questionRepository)
         val photoId = UUID.randomUUID()
+        val ownerId = UUID.randomUUID()
         val photo = MemoryPhoto(
             id = photoId,
-            ownerUserId = UUID.randomUUID(),
+            ownerUserId = ownerId,
             uploadedByUserId = UUID.randomUUID(),
             title = "Test",
             photoUrl = "url",
@@ -306,7 +315,9 @@ class MemoryServicesTest {
         )
         questionRepository.saveAll(questions)
 
-        val result = service.handle(GetMemoryQuizQuery.In(memoryPhotoId = photoId))
+        val result = service.handle(
+            GetMemoryQuizQuery.In(memoryPhotoId = photoId, ownerUserId = ownerId),
+        )
 
         assertEquals(photo, result.photo)
         assertEquals(1, result.questions.size)
@@ -377,5 +388,70 @@ class MemoryServicesTest {
 
         assertNull(result.photo)
         assertEquals(0, result.questions.size)
+    }
+
+    @Test
+    fun `quiz services reject a photo owned by another family`() {
+        val photoId = UUID.randomUUID()
+        val ownerId = UUID.randomUUID()
+        val outsiderId = UUID.randomUUID()
+        photoRepository.save(
+            MemoryPhoto(
+                id = photoId,
+                ownerUserId = ownerId,
+                uploadedByUserId = ownerId,
+                title = "Test",
+                photoUrl = "url",
+                memoryLabel = "label",
+            ),
+        )
+        questionRepository.saveAll(
+            listOf(
+                MemoryQuizQuestion(
+                    id = UUID.randomUUID(),
+                    memoryPhotoId = photoId,
+                    question = "Q1",
+                    options = listOf("A", "B"),
+                    correctOptionIndex = 0,
+                    sortOrder = 0,
+                ),
+            ),
+        )
+
+        assertThrows<ForbiddenException> {
+            CreateMemoryQuizService(photoRepository, questionRepository).handle(
+                CreateMemoryQuizCommand.In(
+                    memoryPhotoId = photoId,
+                    questions = listOf(
+                        CreateMemoryQuizCommand.QuestionIn(
+                            question = "Injected",
+                            options = listOf("A", "B"),
+                            correctOptionIndex = 0,
+                        ),
+                    ),
+                    ownerUserId = outsiderId,
+                ),
+            )
+        }
+
+        assertThrows<ForbiddenException> {
+            GetMemoryQuizService(photoRepository, questionRepository).handle(
+                GetMemoryQuizQuery.In(memoryPhotoId = photoId, ownerUserId = outsiderId),
+            )
+        }
+
+        assertThrows<ForbiddenException> {
+            SubmitMemoryQuizAttemptService(photoRepository, questionRepository, attemptRepository).handle(
+                SubmitMemoryQuizAttemptCommand.In(
+                    memoryPhotoId = photoId,
+                    respondentUserId = outsiderId,
+                    answers = listOf(0),
+                    ownerUserId = outsiderId,
+                ),
+            )
+        }
+
+        assertEquals(1, questionRepository.findAllByMemoryPhotoIdOrderBySortOrderAsc(photoId).size)
+        assertEquals(0, attemptRepository.attempts.size)
     }
 }
