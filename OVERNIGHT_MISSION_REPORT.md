@@ -4,7 +4,7 @@ Started: 2026-08-17 (KST), after a ~25min delay to land on a fresh session token
 Mode: fully autonomous — no commit/push/approval confirmations during this run, per explicit user instruction.
 Execution order: sequential (not parallel), to avoid concurrent git/build races in the same working tree.
 
-## Status: 🔴 Not started yet (waiting for scheduled wakeup)
+## Status: 🟡 In progress — Task 1 ✅ done, Task 2 starting
 
 ## Task 1 — Backend test coverage
 - Scope: `app-api`, `auth`, `user`, `common`, `client-openai`, `migration` (originally briefed as zero-test modules), following the existing hand-rolled-fake pattern used in `memory`/`family`/`message`/`call`/`notification`/`activity`.
