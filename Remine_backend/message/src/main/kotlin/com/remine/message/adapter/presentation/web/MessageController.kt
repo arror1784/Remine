@@ -54,7 +54,7 @@ class MessageController(
                 userAId = principal.userId,
                 userBId = otherUserId,
                 before = before,
-                limit = limit,
+                limit = limit.coerceIn(1, MAX_PAGE_SIZE),
             ),
         )
         return ApiResponse.ok(out.items.map { ChatMessageResponse.from(it) })
@@ -74,4 +74,8 @@ class MessageController(
 
     private fun resolveRecipientId(principal: RemineUserPrincipal): UUID =
         principal.requireCounterpartUserId()
+
+    private companion object {
+        const val MAX_PAGE_SIZE = 100
+    }
 }

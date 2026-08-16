@@ -15,3 +15,10 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
+
+jwt:
+  # No default on purpose: application.yml falls back to a committed dev secret so
+  # local dev works out of the box, and anyone with the repo could forge tokens for
+  # any account if that fallback ever reached prod. Overriding it here without a
+  # default makes a prod boot fail fast when JWT_SECRET is missing.
+  secret: ${JWT_SECRET}

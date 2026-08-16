@@ -61,7 +61,7 @@ class FamilyPostController(
                 pairUserIds = resolvePairUserIds(principal),
                 viewerUserId = principal.userId,
                 cursor = cursor,
-                limit = limit,
+                limit = limit.coerceIn(1, MAX_PAGE_SIZE),
             )
         )
         return ApiResponse.ok(result.items.map { PostWithViewerStateResponse.from(it) })
@@ -118,4 +118,8 @@ class FamilyPostController(
         runCatching { principal.parentUserId() }.getOrNull(),
         principal.counterpartUserId(),
     )
+
+    private companion object {
+        const val MAX_PAGE_SIZE = 100
+    }
 }

@@ -9,6 +9,7 @@ interface StartCallCommand {
     data class In(
         val callerId: UUID,
         val calleeId: UUID,
+        val counterpartUserId: UUID,
     )
 
     data class Out(

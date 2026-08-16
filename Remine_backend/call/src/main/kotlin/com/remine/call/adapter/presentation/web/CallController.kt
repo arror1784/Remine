@@ -31,11 +31,12 @@ class CallController(
         @AuthenticationPrincipal principal: RemineUserPrincipal,
         @RequestBody(required = false) request: StartCallRequest? = null,
     ): ApiResponse<CallResponse> {
-        val calleeId = request?.calleeId ?: principal.requireCounterpartUserId()
+        val counterpartId = principal.requireCounterpartUserId()
         val out = startCallCommand.handle(
             StartCallCommand.In(
                 callerId = principal.userId,
-                calleeId = calleeId,
+                calleeId = request?.calleeId ?: counterpartId,
+                counterpartUserId = counterpartId,
             )
         )
         return ApiResponse.ok(CallResponse.from(out.entity))
@@ -63,7 +64,7 @@ class CallController(
         val out = getCallHistoryQuery.handle(
             GetCallHistoryQuery.In(
                 userId = principal.userId,
-                limit = limit,
+                limit = limit.coerceIn(1, MAX_PAGE_SIZE),
             )
         )
         return ApiResponse.ok(out.items.map { CallResponse.from(it) })
@@ -86,5 +87,9 @@ class CallController(
                 totalDurationSeconds = out.totalDurationSeconds,
             )
         )
+    }
+
+    private companion object {
+        const val MAX_PAGE_SIZE = 100
     }
 }

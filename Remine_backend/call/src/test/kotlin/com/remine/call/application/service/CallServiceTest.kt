@@ -13,6 +13,7 @@ import com.remine.common.domain.exception.ForbiddenException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -57,7 +58,7 @@ class CallServiceTest {
         val callerId = UUID.randomUUID()
         val calleeId = UUID.randomUUID()
 
-        val out = service.handle(StartCallCommand.In(callerId = callerId, calleeId = calleeId))
+        val out = service.handle(StartCallCommand.In(callerId = callerId, calleeId = calleeId, counterpartUserId = calleeId))
 
         assertNotNull(out.entity.id)
         assertEquals(callerId, out.entity.callerId)
@@ -75,7 +76,7 @@ class CallServiceTest {
         val callerId = UUID.randomUUID()
         val calleeId = UUID.randomUUID()
 
-        val created = startService.handle(StartCallCommand.In(callerId = callerId, calleeId = calleeId)).entity
+        val created = startService.handle(StartCallCommand.In(callerId = callerId, calleeId = calleeId, counterpartUserId = calleeId)).entity
 
         val endedOut = endService.handle(EndCallCommand.In(callId = created.id, endedByUserId = callerId))
 
@@ -101,7 +102,7 @@ class CallServiceTest {
         val endService = EndCallService(repo)
 
         val created = startService.handle(
-            StartCallCommand.In(callerId = UUID.randomUUID(), calleeId = UUID.randomUUID()),
+            newStartCallIn(callerId = UUID.randomUUID(), calleeId = UUID.randomUUID()),
         ).entity
 
         assertThrows(ForbiddenException::class.java) {
@@ -118,7 +119,7 @@ class CallServiceTest {
 
         val calleeId = UUID.randomUUID()
         val created = startService.handle(
-            StartCallCommand.In(callerId = UUID.randomUUID(), calleeId = calleeId),
+            newStartCallIn(callerId = UUID.randomUUID(), calleeId = calleeId),
         ).entity
 
         val endedOut = endService.handle(EndCallCommand.In(callId = created.id, endedByUserId = calleeId))
@@ -161,4 +162,29 @@ class CallServiceTest {
         assertEquals(2, stats.count)
         assertEquals(90L, stats.totalDurationSeconds)
     }
+
+    @Test
+    fun `start call throws ForbiddenException when calleeId is not the caller's counterpart`() {
+        val repo = MockCallLogRepositoryPort()
+        val service = StartCallService(repo)
+
+        val strangerId = UUID.randomUUID()
+
+        assertThrows(ForbiddenException::class.java) {
+            service.handle(
+                StartCallCommand.In(
+                    callerId = UUID.randomUUID(),
+                    calleeId = strangerId,
+                    counterpartUserId = UUID.randomUUID(),
+                ),
+            )
+        }
+        assertTrue(repo.storage.isEmpty())
+    }
+
+    private fun newStartCallIn(callerId: UUID, calleeId: UUID) = StartCallCommand.In(
+        callerId = callerId,
+        calleeId = calleeId,
+        counterpartUserId = calleeId,
+    )
 }
