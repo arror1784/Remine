@@ -3,22 +3,20 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomSheet from '@/components/BottomSheet'
 import { generateQuizQuestions, uploadPhoto } from '@/api/memory'
-import anniversary from '@/assets/memories/anniversary.jpg'
-import birthdayCake from '@/assets/memories/birthday-cake.png'
-import familyTrip from '@/assets/memories/family-trip.png'
-import grandchildWalk from '@/assets/memories/grandchild-walk.png'
-import grandchild from '@/assets/memories/grandchild.png'
-import sokchoTrip from '@/assets/memories/sokcho-trip.png'
 
-// 실제 파일 업로드/스토리지가 아직 없어서, 앱에 번들된 샘플 사진 중 하나를 골라
-// 그 경로를 photoUrl로 보낸다. 동작하지 않는 가짜 file input 대신 둔 임시 장치.
+// 실제 파일 업로드/스토리지가 아직 없어서, public/assets/에 고정 배치해 둔 샘플 사진 중
+// 하나를 골라 그 경로를 photoUrl로 보낸다. 동작하지 않는 가짜 file input 대신 둔 임시
+// 장치. Vite가 번들해서 해시를 붙이는 src/assets/ import를 쓰면 안 된다 — 그 경로는
+// 프론트엔드 실행 방식(dev 서버 vs 빌드)에 따라 달라지고, 백엔드에 저장한 뒤 나중에
+// 다시 불러올 때는 그 경로가 더 이상 유효하지 않다. public/ 밑의 고정 경로라야
+// 언제 다시 조회하든 항상 같은 URL로 서빙된다.
 const SAMPLE_PHOTOS = [
-  { src: familyTrip, label: '가족 여행' },
-  { src: birthdayCake, label: '생신' },
-  { src: grandchildWalk, label: '손주와 산책' },
-  { src: anniversary, label: '기념일' },
-  { src: grandchild, label: '손주' },
-  { src: sokchoTrip, label: '속초 여행' },
+  { src: '/assets/family-trip.png', label: '가족 여행' },
+  { src: '/assets/birthday-cake.png', label: '생신' },
+  { src: '/assets/grandchild-walk.png', label: '손주와 산책' },
+  { src: '/assets/anniversary.jpg', label: '기념일' },
+  { src: '/assets/grandchild.png', label: '손주' },
+  { src: '/assets/sokcho-trip.png', label: '속초 여행' },
 ]
 
 export default function AddMemoryPhoto() {
