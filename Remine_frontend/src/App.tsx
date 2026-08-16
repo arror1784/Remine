@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
+import { useAuthStore } from '@/store/auth'
 import PhoneFrame from '@/components/PhoneFrame'
 import Splash from '@/pages/Splash'
 import Login from '@/pages/Login'
@@ -30,6 +32,21 @@ import ChildNotifications from '@/pages/child/Notifications'
 function App() {
   const location = useLocation()
   const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation
+  const activeRole = useAuthStore((s) => s.activeRole)
+  const setActiveRole = useAuthStore((s) => s.setActiveRole)
+
+  // The visible screen's own /parent/* or /child/* path is the real source of
+  // truth for which session should be active — not whichever switch button
+  // was last tapped. This keeps every entry point (SwitchMode, /login, direct
+  // URLs, back/forward) self-correcting instead of each one having to
+  // remember to call setActiveRole itself.
+  useEffect(() => {
+    const pathname = (backgroundLocation ?? location).pathname
+    const routeRole = pathname.startsWith('/child') ? 'child' : pathname.startsWith('/parent') ? 'parent' : null
+    if (routeRole && routeRole !== activeRole) {
+      setActiveRole(routeRole)
+    }
+  }, [location, backgroundLocation, activeRole, setActiveRole])
 
   return (
     <PhoneFrame>
