@@ -37,7 +37,12 @@ export default function ChildNotifications() {
 
   const openNotification = (n: NotificationItem) => {
     markNotificationAsRead(n.id).catch(() => {})
-    setNotifications((prev) => prev.map((item) => (item.id === n.id ? { ...item, read: true } : item)))
+    // Matches the backend: reading one notification also clears every other unread
+    // notification pointing at the same place (deepLink stands in for "kind" — there's
+    // no separate type field), so e.g. reading one "new message" alert clears them all.
+    setNotifications((prev) =>
+      prev.map((item) => (item.deepLink === n.deepLink ? { ...item, read: true } : item))
+    )
     navigate(`/child/${n.deepLink}`)
   }
 

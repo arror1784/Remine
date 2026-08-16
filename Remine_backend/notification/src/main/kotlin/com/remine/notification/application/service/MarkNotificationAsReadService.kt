@@ -18,8 +18,15 @@ class MarkNotificationAsReadService(
             recipientUserId = command.recipientUserId,
         ) ?: throw EntityNotFoundException("Notification not found with id: ${command.notificationId} for user: ${command.recipientUserId}")
 
-        val updated = notification.markAsRead()
-        val saved = notificationRepositoryPort.save(updated)
+        val saved = notificationRepositoryPort.save(notification.markAsRead())
+
+        // Reading one notification also clears every other unread notification of the same
+        // "kind" (there's no separate type field, so deepLink — the destination it points to —
+        // stands in for it) for this recipient, since they've now seen that context.
+        notificationRepositoryPort.findAllByRecipientUserIdOrderByCreatedAtDesc(command.recipientUserId)
+            .filter { !it.read && it.id != saved.id && it.deepLink == saved.deepLink }
+            .forEach { notificationRepositoryPort.save(it.markAsRead()) }
+
         return MarkNotificationAsReadCommand.Out(entity = saved)
     }
 }

@@ -65,6 +65,50 @@ class MarkNotificationAsReadServiceTest {
     }
 
     @Test
+    fun `marking one notification as read also clears unread siblings with the same deepLink`() {
+        val repo = FakeNotificationRepository()
+        val service = MarkNotificationAsReadService(repo)
+        val userId = UUID.randomUUID()
+
+        val target = Notification(
+            recipientUserId = userId,
+            emoji = "💬",
+            bgColor = "#fff7cc",
+            title = "새 메시지가 도착했어요",
+            description = "첫 번째 메시지",
+            deepLink = "family/message",
+            read = false,
+        )
+        val sameKindSibling = Notification(
+            recipientUserId = userId,
+            emoji = "💬",
+            bgColor = "#fff7cc",
+            title = "새 메시지가 도착했어요",
+            description = "두 번째 메시지",
+            deepLink = "family/message",
+            read = false,
+        )
+        val differentKind = Notification(
+            recipientUserId = userId,
+            emoji = "🧩",
+            bgColor = "#fff7cc",
+            title = "오늘의 추억 퀴즈가 준비됐어요",
+            description = "가족 나들이 사진으로 퀴즈를 풀어보세요.",
+            deepLink = "memories/quiz",
+            read = false,
+        )
+        repo.save(target)
+        repo.save(sameKindSibling)
+        repo.save(differentKind)
+
+        service.handle(MarkNotificationAsReadCommand.In(notificationId = target.id, recipientUserId = userId))
+
+        assertTrue(repo.storage.getValue(target.id).read)
+        assertTrue(repo.storage.getValue(sameKindSibling.id).read)
+        assertTrue(!repo.storage.getValue(differentKind.id).read)
+    }
+
+    @Test
     fun `throws EntityNotFoundException when notification does not exist`() {
         val repo = FakeNotificationRepository()
         val service = MarkNotificationAsReadService(repo)
