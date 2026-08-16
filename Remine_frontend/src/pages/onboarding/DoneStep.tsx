@@ -3,7 +3,7 @@ import Screen from '@/components/Screen'
 import StepNav from '@/components/StepNav'
 import PillButton from '@/components/PillButton'
 import type { OnboardingState } from '@/pages/onboarding/types'
-import { ROLE_COLOR } from '@/pages/onboarding/types'
+import { PAIRING_FAILED, ROLE_COLOR } from '@/pages/onboarding/types'
 
 type DoneStepProps = {
   state: OnboardingState
@@ -23,8 +23,12 @@ export default function DoneStep({ state, onBack, onFinish }: DoneStepProps) {
     setError(null)
     try {
       await onFinish()
-    } catch {
-      setError('가입에 실패했어요. 잠시 후 다시 시도해 주세요.')
+    } catch (e) {
+      setError(
+        e instanceof Error && e.message === PAIRING_FAILED
+          ? '가입은 완료됐지만 초대 코드가 올바르지 않아 가족 연결에 실패했어요. 코드를 수정하거나 다시 누르면 그대로 시작해요.'
+          : '가입에 실패했어요. 잠시 후 다시 시도해 주세요.'
+      )
       setSubmitting(false)
     }
   }

@@ -13,6 +13,11 @@ interface DemoLoginResponse {
   pairedUserId: string | null
 }
 
+interface PairingResponse {
+  parentUserId: string
+  accessToken: string
+}
+
 interface SignUpResponse {
   userId: string
   inviteCode: string | null
@@ -36,6 +41,13 @@ export async function demoLogin(role: Role): Promise<{
   })
   const data = unwrap(response.data)
   return { ...data, role: data.role.toLowerCase() as Role }
+}
+
+export async function pairWithInviteCode(inviteCode: string): Promise<PairingResponse> {
+  const response = await http.post<ApiEnvelope<PairingResponse>>('/api/v1/users/me/pairing', {
+    inviteCode,
+  })
+  return unwrap(response.data)
 }
 
 export async function signUp(payload: {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import WelcomeStep from '@/pages/onboarding/WelcomeStep'
 import RoleSelectStep from '@/pages/onboarding/RoleSelectStep'
@@ -6,7 +6,8 @@ import ProfileStep from '@/pages/onboarding/ProfileStep'
 import DetailStep from '@/pages/onboarding/DetailStep'
 import DoneStep from '@/pages/onboarding/DoneStep'
 import type { OnboardingState, Role } from '@/pages/onboarding/types'
-import { signUp } from '@/api/auth'
+import { PAIRING_FAILED } from '@/pages/onboarding/types'
+import { pairWithInviteCode, signUp } from '@/api/auth'
 import { useAuthStore } from '@/store/auth'
 
 const STEP_COUNT = 5
@@ -21,6 +22,9 @@ export default function OnboardingFlow() {
     interests: [],
     inviteCode: '',
   })
+
+  const accountRef = useRef<{ userId: string; accessToken: string } | null>(null)
+  const failedInviteCodeRef = useRef<string | null>(null)
 
   const goNext = () => setStep((s) => Math.min(s + 1, STEP_COUNT - 1))
   const goBack = () => setStep((s) => Math.max(s - 1, 0))
@@ -38,15 +42,36 @@ export default function OnboardingFlow() {
   const finish = async () => {
     const role = state.role
     if (!role) return
-    const { userId, accessToken } = await signUp({
-      role,
-      name: state.name,
-      ageGroup: state.ageGroup ?? '기타',
-      interests: state.interests,
-    })
+
+    // The account survives a failed pairing, so never sign up twice on retry.
+    if (!accountRef.current) {
+      accountRef.current = await signUp({
+        role,
+        name: state.name,
+        ageGroup: state.ageGroup ?? '기타',
+        interests: state.interests,
+      })
+    }
+    const { userId, accessToken } = accountRef.current
     const { setSession, setActiveRole } = useAuthStore.getState()
     setSession(role, { userId, accessToken, pairedUserId: null })
     setActiveRole(role)
+
+    const inviteCode = state.inviteCode.trim()
+    if (role === 'child' && inviteCode && failedInviteCodeRef.current !== inviteCode) {
+      try {
+        const pairing = await pairWithInviteCode(inviteCode)
+        setSession(role, {
+          userId,
+          accessToken: pairing.accessToken,
+          pairedUserId: pairing.parentUserId,
+        })
+      } catch {
+        // Retrying with the same code skips pairing and enters the app unpaired.
+        failedInviteCodeRef.current = inviteCode
+        throw new Error(PAIRING_FAILED)
+      }
+    }
     navigate(`/${role}/home`)
   }
 
