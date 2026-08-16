@@ -85,7 +85,7 @@ export default function ParentHome() {
     return () => {
       active = false
     }
-  }, [])
+  }, [refreshUnreadCount])
 
   // Until the fetch lands (or if it fails) the card keeps its static copy so it never flashes empty.
   const recommendationMessage = recommendation?.parentMessage ?? '오늘 오후 산책 어떠세요?'

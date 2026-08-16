@@ -80,7 +80,7 @@ export default function ChildHome() {
     return () => {
       active = false
     }
-  }, [])
+  }, [refreshUnreadCount])
 
   const activities = buildActivities(summary)
 

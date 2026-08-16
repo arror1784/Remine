@@ -27,9 +27,6 @@ class UserController(
     private val getPairedUserQuery: GetPairedUserQuery,
 ) {
 
-    // TODO: /api/v1/users/signup currently requires the security config's permitAll list
-    // to also include "/api/v1/users/signup" and that this will need a follow-up change
-    // to auth module's SecurityConfig.kt.
     @PostMapping("/signup")
     fun signUp(
         @Valid @RequestBody request: SignUpRequest,
