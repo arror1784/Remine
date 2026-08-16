@@ -18,8 +18,8 @@ import org.springframework.web.client.RestTemplate
 class OpenAiClient(
     @Value("\${openai.api-key}") private val apiKey: String,
     @Value("\${openai.model:gpt-4o-mini}") private val model: String,
+    private val restTemplate: RestTemplate = RestTemplate(),
 ) {
-    private val restTemplate = RestTemplate()
 
     /**
      * Runs a chat completion in JSON mode and returns the raw `choices[0].message.content`.
