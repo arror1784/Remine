@@ -1,7 +1,9 @@
 package com.remine.call.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
+import com.remine.call.application.port.inbound.AnswerCallCommand
 import com.remine.call.application.port.inbound.EndCallCommand
+import com.remine.call.application.port.inbound.GetActiveCallQuery
 import com.remine.call.application.port.inbound.GetCallHistoryQuery
 import com.remine.call.application.port.inbound.GetCallStatsQuery
 import com.remine.call.application.port.inbound.StartCallCommand
@@ -22,9 +24,11 @@ import java.util.UUID
 @RequestMapping("/api/v1/calls")
 class CallController(
     private val startCallCommand: StartCallCommand,
+    private val answerCallCommand: AnswerCallCommand,
     private val endCallCommand: EndCallCommand,
     private val getCallHistoryQuery: GetCallHistoryQuery,
     private val getCallStatsQuery: GetCallStatsQuery,
+    private val getActiveCallQuery: GetActiveCallQuery,
 ) {
     @PostMapping
     fun startCall(
@@ -40,6 +44,28 @@ class CallController(
             )
         )
         return ApiResponse.ok(CallResponse.from(out.entity))
+    }
+
+    @PatchMapping("/{id}/answer")
+    fun answerCall(
+        @PathVariable id: UUID,
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+    ): ApiResponse<CallResponse> {
+        val out = answerCallCommand.handle(
+            AnswerCallCommand.In(
+                callId = id,
+                answeredByUserId = principal.userId,
+            )
+        )
+        return ApiResponse.ok(CallResponse.from(out.entity))
+    }
+
+    @GetMapping("/active")
+    fun getActiveCall(
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+    ): ApiResponse<CallResponse?> {
+        val out = getActiveCallQuery.handle(GetActiveCallQuery.In(userId = principal.userId))
+        return ApiResponse.ok(out.call?.let { CallResponse.from(it) })
     }
 
     @PatchMapping("/{id}/end")

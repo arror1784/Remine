@@ -1,6 +1,8 @@
 package com.remine.call.application.service
 
+import com.remine.call.application.port.inbound.AnswerCallCommand
 import com.remine.call.application.port.inbound.EndCallCommand
+import com.remine.call.application.port.inbound.GetActiveCallQuery
 import com.remine.call.application.port.inbound.GetCallHistoryQuery
 import com.remine.call.application.port.inbound.GetCallStatsQuery
 import com.remine.call.application.port.inbound.StartCallCommand
@@ -10,6 +12,7 @@ import com.remine.call.domain.CallStats
 import com.remine.call.domain.CallStatus
 import com.remine.common.domain.exception.EntityNotFoundException
 import com.remine.common.domain.exception.ForbiddenException
+import com.remine.common.domain.exception.InvalidRequestException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -47,6 +50,15 @@ class CallServiceTest {
             val count = matching.size
             val totalDuration = matching.sumOf { it.durationSeconds.toLong() }
             return CallStats(count = count, totalDurationSeconds = totalDuration)
+        }
+
+        override fun findActiveByUserId(userId: UUID): CallLog? {
+            return storage.values
+                .filter {
+                    (it.callerId == userId || it.calleeId == userId) &&
+                        (it.status == CallStatus.CONNECTING || it.status == CallStatus.CONNECTED)
+                }
+                .maxByOrNull { it.startedAt }
         }
     }
 
@@ -180,6 +192,100 @@ class CallServiceTest {
             )
         }
         assertTrue(repo.storage.isEmpty())
+    }
+
+    @Test
+    fun `answer call transitions CONNECTING to CONNECTED for the callee`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val answerService = AnswerCallService(repo)
+
+        val calleeId = UUID.randomUUID()
+        val created = startService.handle(newStartCallIn(callerId = UUID.randomUUID(), calleeId = calleeId)).entity
+
+        val answered = answerService.handle(AnswerCallCommand.In(callId = created.id, answeredByUserId = calleeId))
+
+        assertEquals(CallStatus.CONNECTED, answered.entity.status)
+    }
+
+    @Test
+    fun `answer call throws ForbiddenException when the caller tries to answer their own call`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val answerService = AnswerCallService(repo)
+
+        val callerId = UUID.randomUUID()
+        val created = startService.handle(newStartCallIn(callerId = callerId, calleeId = UUID.randomUUID())).entity
+
+        assertThrows(ForbiddenException::class.java) {
+            answerService.handle(AnswerCallCommand.In(callId = created.id, answeredByUserId = callerId))
+        }
+    }
+
+    @Test
+    fun `answer call is idempotent once already CONNECTED`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val answerService = AnswerCallService(repo)
+
+        val calleeId = UUID.randomUUID()
+        val created = startService.handle(newStartCallIn(callerId = UUID.randomUUID(), calleeId = calleeId)).entity
+        answerService.handle(AnswerCallCommand.In(callId = created.id, answeredByUserId = calleeId))
+
+        val secondAnswer = answerService.handle(AnswerCallCommand.In(callId = created.id, answeredByUserId = calleeId))
+
+        assertEquals(CallStatus.CONNECTED, secondAnswer.entity.status)
+    }
+
+    @Test
+    fun `answer call throws InvalidRequestException once the call has already ended`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val endService = EndCallService(repo)
+        val answerService = AnswerCallService(repo)
+
+        val calleeId = UUID.randomUUID()
+        val callerId = UUID.randomUUID()
+        val created = startService.handle(newStartCallIn(callerId = callerId, calleeId = calleeId)).entity
+        endService.handle(EndCallCommand.In(callId = created.id, endedByUserId = callerId))
+
+        assertThrows(InvalidRequestException::class.java) {
+            answerService.handle(AnswerCallCommand.In(callId = created.id, answeredByUserId = calleeId))
+        }
+    }
+
+    @Test
+    fun `get active call finds a CONNECTING or CONNECTED call for either participant`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val activeService = GetActiveCallService(repo)
+
+        val callerId = UUID.randomUUID()
+        val calleeId = UUID.randomUUID()
+        val created = startService.handle(newStartCallIn(callerId = callerId, calleeId = calleeId)).entity
+
+        val callerView = activeService.handle(GetActiveCallQuery.In(userId = callerId))
+        val calleeView = activeService.handle(GetActiveCallQuery.In(userId = calleeId))
+
+        assertEquals(created.id, callerView.call?.id)
+        assertEquals(created.id, calleeView.call?.id)
+    }
+
+    @Test
+    fun `get active call returns null once the call has ended`() {
+        val repo = MockCallLogRepositoryPort()
+        val startService = StartCallService(repo)
+        val endService = EndCallService(repo)
+        val activeService = GetActiveCallService(repo)
+
+        val callerId = UUID.randomUUID()
+        val calleeId = UUID.randomUUID()
+        val created = startService.handle(newStartCallIn(callerId = callerId, calleeId = calleeId)).entity
+        endService.handle(EndCallCommand.In(callId = created.id, endedByUserId = calleeId))
+
+        val result = activeService.handle(GetActiveCallQuery.In(userId = callerId))
+
+        assertEquals(null, result.call)
     }
 
     private fun newStartCallIn(callerId: UUID, calleeId: UUID) = StartCallCommand.In(

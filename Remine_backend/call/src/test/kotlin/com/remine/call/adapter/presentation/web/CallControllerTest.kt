@@ -2,7 +2,9 @@ package com.remine.call.adapter.presentation.web
 
 import com.remine.auth.domain.RemineUserPrincipal
 import com.remine.auth.domain.Role
+import com.remine.call.application.port.inbound.AnswerCallCommand
 import com.remine.call.application.port.inbound.EndCallCommand
+import com.remine.call.application.port.inbound.GetActiveCallQuery
 import com.remine.call.application.port.inbound.GetCallHistoryQuery
 import com.remine.call.application.port.inbound.GetCallStatsQuery
 import com.remine.call.application.port.inbound.StartCallCommand
@@ -29,6 +31,14 @@ class CallControllerTest {
         override fun handle(command: StartCallCommand.In): StartCallCommand.Out {
             return StartCallCommand.Out(
                 entity = sampleCallLog.copy(callerId = command.callerId, calleeId = command.calleeId)
+            )
+        }
+    }
+
+    private val mockAnswerCallCommand = object : AnswerCallCommand {
+        override fun handle(command: AnswerCallCommand.In): AnswerCallCommand.Out {
+            return AnswerCallCommand.Out(
+                entity = sampleCallLog.copy(id = command.callId, status = CallStatus.CONNECTED)
             )
         }
     }
@@ -60,11 +70,19 @@ class CallControllerTest {
         }
     }
 
+    private val mockGetActiveCallQuery = object : GetActiveCallQuery {
+        override fun handle(query: GetActiveCallQuery.In): GetActiveCallQuery.Out {
+            return GetActiveCallQuery.Out(call = sampleCallLog.copy(calleeId = query.userId))
+        }
+    }
+
     private val controller = CallController(
         startCallCommand = mockStartCallCommand,
+        answerCallCommand = mockAnswerCallCommand,
         endCallCommand = mockEndCallCommand,
         getCallHistoryQuery = mockGetCallHistoryQuery,
         getCallStatsQuery = mockGetCallStatsQuery,
+        getActiveCallQuery = mockGetActiveCallQuery,
     )
 
     @Test
@@ -91,6 +109,27 @@ class CallControllerTest {
         assertNotNull(response.data)
         assertEquals(childId, response.data?.callerId)
         assertEquals(parentId, response.data?.calleeId)
+    }
+
+    @Test
+    fun `answer call answers the call and returns response`() {
+        val principal = RemineUserPrincipal(userId = UUID.randomUUID(), role = Role.CHILD, pairedUserId = null)
+        val callId = UUID.randomUUID()
+
+        val response = controller.answerCall(id = callId, principal = principal)
+
+        assertEquals("CONNECTED", response.data?.status)
+        assertEquals(callId, response.data?.id)
+    }
+
+    @Test
+    fun `get active call returns the caller's current call`() {
+        val userId = UUID.randomUUID()
+        val principal = RemineUserPrincipal(userId = userId, role = Role.PARENT, pairedUserId = null)
+
+        val response = controller.getActiveCall(principal = principal)
+
+        assertEquals(userId, response.data?.calleeId)
     }
 
     @Test

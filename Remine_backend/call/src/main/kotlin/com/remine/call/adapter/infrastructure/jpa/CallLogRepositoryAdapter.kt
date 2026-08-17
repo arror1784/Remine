@@ -46,4 +46,10 @@ class CallLogRepositoryAdapter(
         val duration = (row?.getOrNull(1) as? Number)?.toLong() ?: 0L
         return CallStats(count = count, totalDurationSeconds = duration)
     }
+
+    override fun findActiveByUserId(userId: UUID): CallLog? {
+        return callLogJpaRepository.findActiveByUserId(userId, PageRequest.of(0, 1))
+            .firstOrNull()
+            ?.toDomain()
+    }
 }

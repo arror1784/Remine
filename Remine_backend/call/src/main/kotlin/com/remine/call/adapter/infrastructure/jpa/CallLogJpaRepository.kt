@@ -30,4 +30,17 @@ interface CallLogJpaRepository : JpaRepository<CallLogJpaEntity, UUID> {
         @Param("userId") userId: UUID,
         @Param("since") since: Instant,
     ): List<Array<Any>>
+
+    @Query(
+        """
+        SELECT c FROM CallLogJpaEntity c
+        WHERE (c.callerId = :userId OR c.calleeId = :userId)
+          AND c.status IN ('CONNECTING', 'CONNECTED')
+        ORDER BY c.startedAt DESC
+        """
+    )
+    fun findActiveByUserId(
+        @Param("userId") userId: UUID,
+        pageable: Pageable,
+    ): List<CallLogJpaEntity>
 }
