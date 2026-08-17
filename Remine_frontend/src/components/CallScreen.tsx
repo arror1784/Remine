@@ -109,7 +109,7 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
   const hangUp = () => setState('ended')
 
   return (
-    <div className="flex h-full min-h-[600px] flex-col items-center justify-between bg-gradient-to-b from-remine-nearBlack2 to-remine-deepPurple px-6 pb-10 pt-16">
+    <div className="flex h-full min-h-[600px] flex-col items-center justify-between bg-gradient-to-b from-remine-nearBlack2 to-remine-deepPurple px-6 pb-10 pt-16 sm:pt-6">
       <div className="flex flex-col items-center gap-1">
         {state === 'connecting' && <p className="text-[14px] text-white/50">전화 연결 중...</p>}
         {state === 'connected' && (
