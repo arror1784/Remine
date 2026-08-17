@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import type { Location } from 'react-router-dom'
 import BottomSheet from '@/components/BottomSheet'
 import { getNotifications, markNotificationAsRead, type NotificationItem } from '@/api/notification'
 import { useNotificationStore } from '@/store/notifications'
@@ -12,8 +13,19 @@ function relativeTime(iso: string) {
   return `${Math.floor(minutes / (60 * 24))}일 전`
 }
 
-export default function ChildNotifications() {
+// Shared by /parent/notifications and /child/notifications. Role comes from
+// the route-supplied prop, not the shared activeRole auth store — see the
+// same note in family/Message.tsx for why (cross-tab safety).
+type FamilyNotificationsProps = {
+  role: 'parent' | 'child'
+  accentColor: string
+}
+
+export default function FamilyNotifications({ role, accentColor }: FamilyNotificationsProps) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation
+  const close = () => (backgroundLocation ? navigate(-1) : navigate(`/${role}/home`))
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
@@ -47,23 +59,26 @@ export default function ChildNotifications() {
     setNotifications((prev) =>
       prev.map((item) => (item.deepLink === n.deepLink ? { ...item, read: true } : item))
     )
-    navigate(`/child/${n.deepLink}`)
+    navigate(`/${role}/${n.deepLink}`)
   }
 
   return (
-    <BottomSheet>
+    <BottomSheet onDismiss={close}>
       <div className="flex items-center justify-between">
         <h1 className="flex items-center gap-2 text-[20px] font-semibold text-remine-dark">
           알림
           {unreadCount > 0 && (
-            <span className="flex size-5 items-center justify-center rounded-full bg-remine-blue text-[11px] font-semibold text-white">
+            <span
+              className="flex size-5 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+              style={{ backgroundColor: accentColor }}
+            >
               {unreadCount}
             </span>
           )}
         </h1>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={close}
           className="flex size-9 items-center justify-center rounded-full bg-remine-border text-remine-subtle"
         >
           ✕
@@ -86,7 +101,12 @@ export default function ChildNotifications() {
             onClick={() => openNotification(n)}
             className={`relative flex gap-3.5 py-4 text-left ${i < notifications.length - 1 ? 'border-b border-remine-surfaceAlt' : ''}`}
           >
-            {!n.read && <span className="absolute -left-2 top-5 size-1.5 rounded-full bg-remine-blue" />}
+            {!n.read && (
+              <span
+                className="absolute -left-2 top-5 size-1.5 rounded-full"
+                style={{ backgroundColor: accentColor }}
+              />
+            )}
             <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl text-[16px]" style={{ backgroundColor: n.bgColor }}>
               {n.emoji}
             </div>

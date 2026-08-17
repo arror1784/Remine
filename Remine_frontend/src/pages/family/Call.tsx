@@ -9,7 +9,19 @@ const ROLE_STYLE: Record<UserResponse['role'], { emoji: string; color: string }>
   CHILD: { emoji: '👧', color: ROLE_COLOR.child },
 }
 
-export default function ChildCall() {
+const EMPTY_STATE_COPY = {
+  parent: '자녀가 초대 코드를 입력하면 전화를 걸 수 있어요.',
+  child: '부모님의 초대 코드를 입력하면 전화를 걸 수 있어요.',
+}
+
+// Shared by /parent/family/call and /child/family/call. Role comes from the
+// route-supplied prop, not the shared activeRole auth store — see the same
+// note in family/Message.tsx for why (cross-tab safety).
+type FamilyCallProps = {
+  role: 'parent' | 'child'
+}
+
+export default function FamilyCall({ role }: FamilyCallProps) {
   const [paired, setPaired] = useState<UserResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -37,9 +49,7 @@ export default function ChildCall() {
           <>
             <span className="text-3xl">👨‍👩‍👧</span>
             <p className="text-[16px] font-semibold text-white">아직 연결된 가족이 없어요</p>
-            <p className="text-[14px] leading-[1.6] text-white/50">
-              부모님의 초대 코드를 입력하면 전화를 걸 수 있어요.
-            </p>
+            <p className="text-[14px] leading-[1.6] text-white/50">{EMPTY_STATE_COPY[role]}</p>
           </>
         )}
       </div>
@@ -47,14 +57,16 @@ export default function ChildCall() {
   }
 
   const style = ROLE_STYLE[paired.role]
+  const counterpartRole = role === 'parent' ? 'CHILD' : 'PARENT'
+  const relation = paired.role === counterpartRole ? (role === 'parent' ? '자녀' : '부모님') : '가족'
 
   return (
     <CallScreen
       name={paired.name}
-      relation={paired.role === 'PARENT' ? '부모님' : '가족'}
+      relation={relation}
       emoji={style.emoji}
       accentColor={style.color}
-      backTo="/child/family"
+      backTo={`/${role}/family`}
     />
   )
 }

@@ -13,11 +13,26 @@ const ROLE_STYLE: Record<UserResponse['role'], { emoji: string; color: string }>
   CHILD: { emoji: '👧', color: ROLE_COLOR.child },
 }
 
+const EMPTY_STATE_COPY = {
+  parent: '자녀가 초대 코드를 입력하면 여기에서 메시지를 주고받을 수 있어요.',
+  child: '부모님의 초대 코드를 입력하면 여기에서 메시지를 주고받을 수 있어요.',
+}
+
 function clockTime(iso: string) {
   return new Date(iso).toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' })
 }
 
-export default function ChildMessage() {
+// Shared by /parent/family/message and /child/family/message. Which role
+// this instance is comes from the prop the route passes in, never from the
+// activeRole auth store — that field is shared browser-wide (persisted to
+// localStorage), so reading it here would break the two-incognito-tabs case
+// (one tab open as parent, one as child) the moment either tab reloads.
+type FamilyMessageProps = {
+  role: 'parent' | 'child'
+  accentColor: string
+}
+
+export default function FamilyMessage({ role, accentColor }: FamilyMessageProps) {
   const navigate = useNavigate()
   const [paired, setPaired] = useState<UserResponse | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -112,7 +127,11 @@ export default function ChildMessage() {
                 placeholder="메시지 입력..."
                 className="h-12 min-w-0 flex-1 rounded-full bg-remine-surface px-4 text-[15px] focus:outline-none"
               />
-              <button type="submit" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-remine-blue text-white">
+              <button
+                type="submit"
+                className="flex size-12 shrink-0 items-center justify-center rounded-full text-white"
+                style={{ backgroundColor: accentColor }}
+              >
                 ➤
               </button>
             </form>
@@ -136,7 +155,7 @@ export default function ChildMessage() {
           <p className="text-[16px] font-semibold text-remine-dark">{paired ? paired.name : '메시지'}</p>
         </div>
         {paired && (
-          <Link to="/child/family/call" className="text-xl">
+          <Link to={`/${role}/family/call`} className="text-xl">
             📞
           </Link>
         )}
@@ -153,9 +172,7 @@ export default function ChildMessage() {
           <div className="flex flex-col items-center gap-2 rounded-[20px] border border-remine-border bg-white px-5 py-10 text-center">
             <span className="text-3xl">👨‍👩‍👧</span>
             <p className="text-[16px] font-semibold text-remine-dark">아직 연결된 가족이 없어요</p>
-            <p className="text-[14px] leading-[1.6] text-remine-muted">
-              부모님의 초대 코드를 입력하면 여기에서 메시지를 주고받을 수 있어요.
-            </p>
+            <p className="text-[14px] leading-[1.6] text-remine-muted">{EMPTY_STATE_COPY[role]}</p>
           </div>
         )}
 
@@ -168,7 +185,12 @@ export default function ChildMessage() {
           messages.map((m) => {
             const mine = m.senderId === myUserId
             return (
-              <div key={m.id} data-testid="message-bubble" data-mine={mine} className={`flex items-end gap-2 ${mine ? 'flex-row-reverse' : ''}`}>
+              <div
+                key={m.id}
+                data-testid="message-bubble"
+                data-mine={mine}
+                className={`flex items-end gap-2 ${mine ? 'flex-row-reverse' : ''}`}
+              >
                 {!mine && pairedStyle && (
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-remine-highlight text-[12px]">
                     {pairedStyle.emoji}
@@ -176,8 +198,9 @@ export default function ChildMessage() {
                 )}
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-[15px] leading-[1.4] ${
-                    mine ? 'bg-remine-blue text-white' : 'bg-remine-surface text-remine-dark'
+                    mine ? 'text-white' : 'bg-remine-surface text-remine-dark'
                   }`}
+                  style={mine ? { backgroundColor: accentColor } : undefined}
                 >
                   {m.body}
                 </div>
