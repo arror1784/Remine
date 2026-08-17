@@ -34,7 +34,7 @@ export default function SwitchMode() {
   }
 
   return (
-    <BottomSheet>
+    <BottomSheet onDismiss={!backgroundLocation ? () => navigate(`/${current}/home`) : undefined}>
       <div className="flex flex-col gap-1">
         <h2 className="text-[21px] font-semibold text-remine-dark">누가 사용하고 있나요?</h2>
         <p className="text-[14px] text-remine-muted">모드에 따라 화면 구성이 달라져요.</p>
