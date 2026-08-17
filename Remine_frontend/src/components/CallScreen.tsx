@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { endCall, startCall } from '@/api/call'
+import { answerCall, endCall, getActiveCall, startCall } from '@/api/call'
+import { useAuthStore } from '@/store/auth'
 
 type CallScreenProps = {
   name: string
@@ -12,12 +13,18 @@ type CallScreenProps = {
 
 type CallState = 'connecting' | 'connected' | 'ended'
 
+// No websocket/push infra exists yet (same constraint as the message thread),
+// so both sides learn about each other's answer/hangup by polling the shared
+// call-log row instead of a real signaling channel.
+const POLL_INTERVAL_MS = 2000
+
 export default function CallScreen({ name, relation, emoji, accentColor, backTo }: CallScreenProps) {
   const navigate = useNavigate()
   const [state, setState] = useState<CallState>('connecting')
   const [seconds, setSeconds] = useState(0)
   const callIdRef = useRef<string | null>(null)
   const endedRef = useRef(false)
+  const myUserId = useAuthStore((s) => s.sessions[s.activeRole]?.userId)
 
   const finishCall = useCallback(() => {
     const id = callIdRef.current
@@ -26,30 +33,61 @@ export default function CallScreen({ name, relation, emoji, accentColor, backTo 
     endCall(id).catch(() => {})
   }, [])
 
+  // Attach to whatever call is already active for me instead of always
+  // starting a fresh one: if I'm the callee of a still-ringing call, landing
+  // here (via the incoming-call banner's "수락", or by tapping the call icon
+  // directly) is the "answer" action. If I'm the caller, or I've re-entered
+  // an already-connected call, just observe it.
   useEffect(() => {
     let cancelled = false
-    startCall()
-      .then((call) => {
-        // Unmounted before the call was registered — close it right away.
-        if (cancelled) {
-          endCall(call.id).catch(() => {})
-          return
+    const init = async () => {
+      try {
+        const active = await getActiveCall()
+        if (cancelled) return
+        if (active) {
+          callIdRef.current = active.id
+          if (active.calleeId === myUserId && active.status === 'CONNECTING') {
+            const answered = await answerCall(active.id)
+            if (cancelled) return
+            setState(answered.status === 'CONNECTED' ? 'connected' : 'connecting')
+          } else {
+            setState(active.status === 'CONNECTED' ? 'connected' : 'connecting')
+          }
+        } else {
+          const call = await startCall()
+          if (cancelled) {
+            // Unmounted before the call was registered — close it right away.
+            endCall(call.id).catch(() => {})
+            return
+          }
+          callIdRef.current = call.id
         }
-        callIdRef.current = call.id
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) navigate(backTo)
-      })
+      }
+    }
+    init()
     return () => {
       cancelled = true
       finishCall()
     }
-  }, [backTo, navigate, finishCall])
+  }, [backTo, navigate, finishCall, myUserId])
 
+  // Learn about the other participant's answer or hangup.
   useEffect(() => {
-    if (state !== 'connecting') return
-    const toConnected = setTimeout(() => setState('connected'), 2000)
-    return () => clearTimeout(toConnected)
+    if (state === 'ended') return
+    const interval = setInterval(() => {
+      getActiveCall()
+        .then((active) => {
+          if (!active || active.id !== callIdRef.current || active.status === 'ENDED' || active.status === 'MISSED') {
+            setState('ended')
+          } else if (active.status === 'CONNECTED') {
+            setState((prev) => (prev === 'connecting' ? 'connected' : prev))
+          }
+        })
+        .catch(() => {})
+    }, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
   }, [state])
 
   useEffect(() => {

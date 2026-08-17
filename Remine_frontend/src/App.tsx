@@ -4,6 +4,7 @@ import type { Location } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { COLORS } from '@/theme'
 import PhoneFrame from '@/components/PhoneFrame'
+import IncomingCallBanner from '@/components/IncomingCallBanner'
 import Splash from '@/pages/Splash'
 import Login from '@/pages/Login'
 import OnboardingFlow from '@/pages/onboarding/OnboardingFlow'
@@ -96,6 +97,8 @@ function App() {
           </Routes>
         </div>
       )}
+
+      <IncomingCallBanner />
     </PhoneFrame>
   )
 }
