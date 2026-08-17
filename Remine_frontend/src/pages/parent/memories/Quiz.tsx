@@ -55,7 +55,7 @@ export default function MemoryQuiz() {
   }
 
   const header = (
-    <div className="flex items-center gap-3 px-5 pt-[max(30px,env(safe-area-inset-top))]">
+    <div className="flex items-center gap-3 px-5 pt-[max(30px,env(safe-area-inset-top))] sm:pt-4">
       {!answered && (
         <button type="button" onClick={() => navigate('/parent/memories')} className="text-[20px] text-remine-dark">
           ‹

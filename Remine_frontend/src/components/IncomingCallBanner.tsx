@@ -78,7 +78,7 @@ export default function IncomingCallBanner() {
   }
 
   return (
-    <div className="absolute inset-x-0 top-0 z-[60] px-3 pt-[max(12px,env(safe-area-inset-top))]">
+    <div className="absolute inset-x-0 top-0 z-[60] px-3 pt-[max(12px,env(safe-area-inset-top))] sm:pt-3">
       <div className="flex items-center gap-3 rounded-2xl bg-remine-nearBlack2 px-4 py-3 shadow-lg">
         <div
           className="flex size-11 shrink-0 items-center justify-center rounded-full border-2 bg-remine-highlight text-lg"

@@ -10,7 +10,11 @@ export default function ModeBar({ label, color, dark = false }: ModeBarProps) {
   const location = useLocation()
 
   return (
-    <div className="flex items-center justify-between px-5 pb-2 pt-[62px]">
+    // pt-[62px] clears a real device's notch below `sm` (StatusBar is hidden
+    // there, so this is the only top clearance). At `sm` and up StatusBar
+    // already reserves its own 44px row above this, so a big top padding
+    // here on top of that reads as a huge empty gap — just a small one.
+    <div className="flex items-center justify-between px-5 pb-2 pt-[62px] sm:pt-3">
       <div
         className={`flex h-9 flex-1 items-center gap-2 rounded-xl px-3.5 ${
           dark ? 'bg-remine-surfaceDark text-white' : 'bg-remine-surface text-remine-dark'

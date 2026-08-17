@@ -139,7 +139,7 @@ export default function FamilyMessage({ role, accentColor }: FamilyMessageProps)
         ) : undefined
       }
     >
-      <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-remine-border bg-white px-4 pb-3 pt-[max(30px,env(safe-area-inset-top))]">
+      <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-remine-border bg-white px-4 pb-3 pt-[max(30px,env(safe-area-inset-top))] sm:pt-4">
         <button type="button" onClick={() => navigate(-1)} className="text-[20px] text-remine-dark">
           ‹
         </button>
