@@ -25,6 +25,8 @@ class SendMessageServiceTest {
         override fun findThread(userAId: UUID, userBId: UUID, before: java.time.Instant?, limit: Int): List<ChatMessage> {
             return messages
         }
+
+        override fun countByPair(userAId: UUID, userBId: UUID): Int = messages.size
     }
 
     private val fakeCreateNotification = object : CreateNotificationCommand {

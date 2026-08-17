@@ -4,7 +4,7 @@ import com.remine.auth.domain.RemineUserPrincipal
 import com.remine.call.application.port.inbound.GetCallStatsQuery
 import com.remine.common.web.ApiResponse
 import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
-import com.remine.message.application.port.inbound.GetChatThreadQuery
+import com.remine.message.application.port.inbound.CountChatThreadQuery
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -20,7 +20,7 @@ import java.time.LocalDate
 class FamilySummaryController(
     private val getMemoryStatsQuery: GetMemoryStatsQuery,
     private val getCallStatsQuery: GetCallStatsQuery,
-    private val getChatThreadQuery: GetChatThreadQuery,
+    private val countChatThreadQuery: CountChatThreadQuery,
 ) {
 
     @GetMapping("/api/v1/family/summary")
@@ -33,7 +33,7 @@ class FamilySummaryController(
             GetCallStatsQuery.In(userId = principal.userId, sinceMonthStart = LocalDate.now().withDayOfMonth(1)),
         )
         val messageCount = counterpartId?.let {
-            getChatThreadQuery.handle(GetChatThreadQuery.In(userAId = principal.userId, userBId = it, limit = 1000)).items.size
+            countChatThreadQuery.handle(CountChatThreadQuery.In(userAId = principal.userId, userBId = it)).count
         } ?: 0
 
         return ApiResponse.ok(

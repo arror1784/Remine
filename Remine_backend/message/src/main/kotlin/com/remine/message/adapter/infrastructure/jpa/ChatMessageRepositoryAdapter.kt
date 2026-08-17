@@ -31,4 +31,7 @@ class ChatMessageRepositoryAdapter(
         }
         return entities.map { it.toDomain() }
     }
+
+    override fun countByPair(userAId: UUID, userBId: UUID): Int =
+        jpaRepository.countThread(userAId, userBId).toInt()
 }

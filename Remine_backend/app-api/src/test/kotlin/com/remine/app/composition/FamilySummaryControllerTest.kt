@@ -5,8 +5,7 @@ import com.remine.auth.domain.Role
 import com.remine.call.application.port.inbound.GetCallStatsQuery
 import com.remine.common.domain.exception.InvalidRequestException
 import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
-import com.remine.message.application.port.inbound.GetChatThreadQuery
-import com.remine.message.domain.ChatMessage
+import com.remine.message.application.port.inbound.CountChatThreadQuery
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -17,7 +16,7 @@ class FamilySummaryControllerTest {
     private fun controller(
         memoryStats: GetMemoryStatsQuery.Out = GetMemoryStatsQuery.Out(totalPhotos = 0, quizActiveCount = 0, addedThisMonth = 0),
         callStats: GetCallStatsQuery.Out = GetCallStatsQuery.Out(count = 0, totalDurationSeconds = 0),
-        chatItems: List<ChatMessage> = emptyList(),
+        messageCount: Int = 0,
     ): FamilySummaryController {
         val fakeMemoryStats = object : GetMemoryStatsQuery {
             override fun handle(query: GetMemoryStatsQuery.In) = memoryStats
@@ -25,10 +24,10 @@ class FamilySummaryControllerTest {
         val fakeCallStats = object : GetCallStatsQuery {
             override fun handle(query: GetCallStatsQuery.In) = callStats
         }
-        val fakeChatThread = object : GetChatThreadQuery {
-            override fun handle(query: GetChatThreadQuery.In) = GetChatThreadQuery.Out(items = chatItems)
+        val fakeChatThreadCount = object : CountChatThreadQuery {
+            override fun handle(query: CountChatThreadQuery.In) = CountChatThreadQuery.Out(count = messageCount)
         }
-        return FamilySummaryController(fakeMemoryStats, fakeCallStats, fakeChatThread)
+        return FamilySummaryController(fakeMemoryStats, fakeCallStats, fakeChatThreadCount)
     }
 
     @Test
@@ -36,15 +35,11 @@ class FamilySummaryControllerTest {
         val parentId = UUID.randomUUID()
         val childId = UUID.randomUUID()
         val principal = RemineUserPrincipal(userId = parentId, role = Role.PARENT, pairedUserId = childId)
-        val chatItems = listOf(
-            ChatMessage(senderId = parentId, recipientId = childId, body = "hi"),
-            ChatMessage(senderId = childId, recipientId = parentId, body = "hello"),
-        )
 
         val response = controller(
             memoryStats = GetMemoryStatsQuery.Out(totalPhotos = 12, quizActiveCount = 3, addedThisMonth = 2),
             callStats = GetCallStatsQuery.Out(count = 5, totalDurationSeconds = 600),
-            chatItems = chatItems,
+            messageCount = 2,
         ).summary(principal)
 
         assertEquals(12, response.data?.sharedPhotoCount)

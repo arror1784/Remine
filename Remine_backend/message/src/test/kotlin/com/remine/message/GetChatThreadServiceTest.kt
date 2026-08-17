@@ -23,6 +23,8 @@ class GetChatThreadServiceTest {
                 ChatMessage(senderId = userBId, recipientId = userAId, body = "Message 2"),
             )
         }
+
+        override fun countByPair(userAId: UUID, userBId: UUID): Int = 2
     }
 
     private val service = GetChatThreadService(fakeRepo)

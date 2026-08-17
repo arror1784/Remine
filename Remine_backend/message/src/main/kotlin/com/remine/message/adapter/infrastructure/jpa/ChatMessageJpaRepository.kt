@@ -38,4 +38,16 @@ interface ChatMessageJpaRepository : JpaRepository<ChatMessageJpaEntity, UUID> {
         @Param("userBId") userBId: UUID,
         pageable: Pageable,
     ): List<ChatMessageJpaEntity>
+
+    @Query(
+        """
+        SELECT COUNT(m) FROM ChatMessageJpaEntity m
+        WHERE (m.senderId = :userAId AND m.recipientId = :userBId)
+           OR (m.senderId = :userBId AND m.recipientId = :userAId)
+        """
+    )
+    fun countThread(
+        @Param("userAId") userAId: UUID,
+        @Param("userBId") userBId: UUID,
+    ): Long
 }
