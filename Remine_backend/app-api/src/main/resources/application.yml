@@ -32,10 +32,13 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+  # Spring Boot 2.x binds RedisProperties under spring.redis (spring.data.redis is the
+  # Boot 3.x rename) — using the wrong prefix here silently no-ops and RedisProperties
+  # falls back to its own default of "localhost", which only worked by coincidence in
+  # local dev (Redis actually running on localhost there).
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
   servlet:
     multipart:
       max-file-size: 8MB

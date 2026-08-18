@@ -45,47 +45,47 @@ sudo ufw enable
 2. A 레코드를 가비아에서 할당받은 공인 IP로 설정
 3. 이 문서 전체에서 `<domain>`은 `remine-demo.duckdns.org` 형태로 치환
 
-## 5. 레포 클론 + git 인증
+## 5. 레포 클론
 
-레포가 private이면 비대화형 `git fetch`가 동작하도록 read-only deploy key를 먼저 등록하세요 (GitHub repo → Settings → Deploy keys → Add).
+`arror1784/Remine` 레포는 **public**이므로 HTTPS 클론이면 충분합니다 — 별도 SSH 키/PAT 등록 없이 `git clone`/`git fetch`가 인증 없이 동작합니다.
 
 ```bash
 sudo mkdir -p /opt/remine && sudo chown $USER:$USER /opt/remine
-git clone git@github.com:<org>/Remine.git /opt/remine
+git clone https://github.com/arror1784/Remine.git /opt/remine
 cd /opt/remine
 ```
+
+(레포가 나중에 private으로 바뀌면 그때는 read-only deploy key(GitHub repo → Settings → Deploy keys → Add)를 등록하고 `git@github.com:...` SSH 클론으로 전환하세요.)
 
 ## 6. 시크릿 배치
 
 ```bash
-cp .env.example /opt/remine.env
-# /opt/remine.env를 채워 넣으세요: JWT_SECRET, DB_USER/PASSWORD, OPENAI_API_KEY,
+# /opt 자체는 root 소유라(Step 5에서 chown한 건 /opt/remine 디렉터리뿐), 그 바로
+# 밑에 파일을 만들려면 sudo가 필요합니다.
+sudo cp .env.example /opt/remine.env
+sudo chown $USER:$USER /opt/remine.env
+chmod 600 /opt/remine.env
+# 이제 내 계정 권한으로 편집 가능합니다. /opt/remine.env를 채워 넣으세요:
+# JWT_SECRET, DB_USER/PASSWORD, OPENAI_API_KEY,
 # STORAGE_PUBLIC_BASE_URL=https://<domain>, CORS_ALLOWED_ORIGINS=https://<domain>,
 # GHCR_OWNER=<org 또는 github 계정명>
-chmod 600 /opt/remine.env
 ```
 
 **`.env`는 레포 클론 디렉터리 밖(`/opt/remine.env`)에 둡니다** — `docker-compose.prod.yml`은 `app-api.env_file`을 `/opt/remine.env`(절대경로)로 참조합니다. 매 배포마다 `/opt/remine`이 `git reset --hard`로 초기화되므로, 클론 디렉터리 안에 두면 지워집니다.
 
 동일한 값을 GitHub Secrets에도 백업해 두세요 — 서버가 사라지면 `/opt/remine.env`가 유일한 시크릿 원본이 되어버립니다.
 
-## 7. GHCR 접근 (레포가 private인 경우 기본값)
+## 7. GHCR 접근
 
-이미지에 시크릿은 없지만("prod" 프로필은 전부 런타임 env로 주입됨), 소스 레포가 private인데 GHCR 이미지를 public으로 돌리면 컴파일된 Kotlin 클래스가 그대로 공개됩니다. **레포가 private이면 GHCR 패키지도 private으로 유지**하고, 서버에서 1회 로그인하세요:
-
-```bash
-echo "<read-only PAT with read:packages>" | docker login ghcr.io -u <github-username> --password-stdin
-```
-
-(레포가 public인 경우에만 GHCR 패키지도 public으로 전환해 이 스텝을 생략할 수 있습니다.)
+소스 레포가 public이므로 코드는 이미 누구나 볼 수 있고, 이미지에도 시크릿이 없습니다("prod" 프로필은 전부 런타임 env로 주입됨) — GHCR 패키지를 **public으로 전환**하면 서버에서 별도 로그인 없이 `docker compose pull`이 그대로 동작합니다.
 
 ## 8. 첫 배포 순서
 
-GHCR 패키지는 최초 push 시 기본 private으로 생성됩니다. 첫 워크플로 실행 시 build job 직후 deploy job이 곧바로 pull을 시도하면 401로 실패할 수 있으므로:
+GHCR 패키지는 최초 push 시 기본 **private**으로 생성됩니다(레포가 public이어도 패키지는 별도 설정). 첫 워크플로 실행 시 build job 직후 deploy job이 곧바로 pull을 시도하면 401로 실패하므로:
 
 1. `main`에 최초 push → build-and-push job만 성공 확인
-2. Step 7의 `docker login`을 서버에서 미리 수행해 뒀다면 그대로 deploy job도 통과합니다. (PAT 없이 public으로 전환하는 경우 GitHub 웹 UI → Packages → 각 패키지 → Package settings → Change visibility)
-3. 이후 push부터는 전체 워크플로우가 문제없이 통과합니다.
+2. GitHub 웹 UI → 저장소 우측 사이드바 Packages(또는 `github.com/<org>?tab=packages`) → `remine-backend`/`remine-frontend` 각 패키지 → Package settings → Change visibility → **Public**
+3. 이후 push부터는 서버에서 로그인 없이 pull이 되므로 전체 워크플로우가 문제없이 통과합니다.
 
 ## 9. 스왑 설정 (RAM < 4GB인 경우 필수)
 
@@ -115,9 +115,13 @@ cp deploy/nginx/nginx.https.conf deploy/nginx/active.conf
 # nginx.https.conf 안의 <domain> 플레이스홀더를 실제 도메인으로 치환하세요:
 sed -i "s/<domain>/<실제-도메인>/g" deploy/nginx/active.conf
 GHCR_OWNER=<org> docker compose --env-file /opt/remine.env -f docker-compose.prod.yml up -d
+# frontend가 1단계에서부터 이미 떠 있었다면 restart로 bind mount를 새로 맺어야 합니다:
+docker compose --env-file /opt/remine.env -f docker-compose.prod.yml restart frontend
 ```
 
 > **주의**: `active.conf`는 항상 `cp`로 생성하세요. 심볼릭 링크로 만들면 Docker가 컨테이너 기동 시점에 링크 대상을 해석해 바인드하므로, 이후 링크만 바꿔도 `nginx -s reload`가 옛 설정을 계속 읽습니다.
+>
+> **`sed -i`도 같은 문제를 일으킵니다.** GNU `sed -i`는 파일을 제자리에서 고치지 않고 임시 파일을 만들어 원본에 rename으로 덮어씁니다 — 이 과정에서 inode가 바뀝니다. `active.conf`를 이미 bind mount로 물고 있는 컨테이너가 떠 있는 상태에서 `sed -i`로 그 파일을 고치면, 컨테이너는 바뀐 내용을 못 보고 계속 옛 inode(옛 내용)를 봅니다. `cp`나 `sed -i`로 `active.conf`를 수정한 뒤에는 `nginx -s reload`만으로 안 되면 `docker compose restart frontend`로 컨테이너를 재시작해 bind mount를 다시 맺어주세요.
 
 ## 11. 인증서 자동 갱신
 
@@ -127,7 +131,7 @@ apt가 설치한 `certbot.timer`(기본 활성화) 하나만 사용하고 별도
 sudo mkdir -p /etc/letsencrypt/renewal-hooks/deploy
 sudo tee /etc/letsencrypt/renewal-hooks/deploy/00-reload-nginx.sh > /dev/null <<'EOF'
 #!/bin/sh
-docker compose -f /opt/remine/docker-compose.prod.yml exec -T frontend nginx -s reload
+docker compose --env-file /opt/remine.env -f /opt/remine/docker-compose.prod.yml exec -T frontend nginx -s reload
 EOF
 sudo chmod +x /etc/letsencrypt/renewal-hooks/deploy/00-reload-nginx.sh
 

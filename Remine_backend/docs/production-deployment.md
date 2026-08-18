@@ -37,8 +37,8 @@ Remine 백엔드는 Kotlin / Spring Boot 기반의 헥사고날 아키텍처(Hex
 | `DB_URL` | `spring.datasource.url` | **필수** | *없음 (부팅 실패)* | PostgreSQL JDBC 연결 URL |
 | `DB_USER` | `spring.datasource.username` | **필수** | *없음 (부팅 실패)* | PostgreSQL 데이터베이스 사용자 계정 |
 | `DB_PASSWORD` | `spring.datasource.password` | **필수** | *없음 (부팅 실패)* | PostgreSQL 데이터베이스 비밀번호 |
-| `REDIS_HOST` | `spring.data.redis.host` | **필수** | *없음 (부팅 실패)* | Redis 서버 호스트명 / IP |
-| `REDIS_PORT` | `spring.data.redis.port` | 선택 | `6379` | Redis 서버 포트 |
+| `REDIS_HOST` | `spring.redis.host` | **필수** | *없음 (부팅 실패)* | Redis 서버 호스트명 / IP |
+| `REDIS_PORT` | `spring.redis.port` | 선택 | `6379` | Redis 서버 포트 |
 | `STORAGE_UPLOAD_DIR` | `storage.upload-dir` | 선택 (권장) | `./uploads` | 추억 사진 업로드 파일이 저장되는 디스크 경로. 컨테이너 배포 시 named volume과 반드시 일치시켜야 재배포 후에도 파일이 유지됨 |
 | `STORAGE_PUBLIC_BASE_URL` | `storage.public-base-url` | 선택 (강력 권장) | `http://localhost:8080` | 업로드된 사진의 절대 URL을 만들 때 쓰는 base — **이 값은 DB에 영구 저장**되므로, 기본값을 그대로 두면 `http://localhost:8080/uploads/...`가 행에 박혀 나중에 값을 바꿔도 기존 사진은 계속 깨져 보임. 프로덕션 도메인(`https://<domain>`)으로 반드시 지정 |
 | `OPENAI_API_KEY` | `openai.api-key` | 선택 (권장) | `""` (빈 문자열) | OpenAI API 인증 키 |
@@ -66,7 +66,7 @@ Remine 백엔드는 Kotlin / Spring Boot 기반의 헥사고날 아키텍처(Hex
   - 예시 `DB_URL`: `jdbc:postgresql://<db-host>:5432/<db-name>?sslmode=require`
   - 테이블 스키마는 애플리케이션 기동 시 Flyway(`V1` ~ `V12`)를 통해 자동 마이그레이션됩니다 (`ddl-auto: validate`).
 
-#### (3) Redis 캐시 설정 (`spring.data.redis`)
+#### (3) Redis 캐시 설정 (`spring.redis`)
 - **`REDIS_HOST` (필수)**: 프로덕션에서는 기본값이 없으므로 Redis 엔드포인트 주소를 반드시 지정해야 합니다.
 - **`REDIS_PORT` (선택)**: 미지정 시 기본 포트 `6379`가 적용됩니다.
 

@@ -11,10 +11,9 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT:6379}
 
 jwt:
   # No default on purpose: application.yml falls back to a committed dev secret so
