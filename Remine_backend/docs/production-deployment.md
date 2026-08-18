@@ -43,6 +43,7 @@ Remine 백엔드는 Kotlin / Spring Boot 기반의 헥사고날 아키텍처(Hex
 | `GOOGLE_OAUTH_CLIENT_ID` | `google.oauth.client-id` | 선택 (미연동) | `""` (빈 문자열) | Google OAuth 클라이언트 ID |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | `google.oauth.client-secret` | 선택 (미연동) | `""` (빈 문자열) | Google OAuth 클라이언트 시크릿 |
 | `GOOGLE_OAUTH_REDIRECT_URI` | `google.oauth.redirect-uri` | 선택 (미연동) | `""` (빈 문자열) | Google OAuth 리다이렉트 URI |
+| `CORS_ALLOWED_ORIGINS` | `cors.allowed-origins` | 선택 (권장) | `http://localhost:5173,http://localhost:5174` | API 호출을 허용할 브라우저 origin (콤마로 구분). 프로덕션 프론트엔드 도메인으로 반드시 교체 — 기본값은 로컬 개발용 Vite 포트라 프로덕션에서 그대로 두면 실제 프론트엔드의 API 호출이 CORS로 막힘 |
 
 ---
 
