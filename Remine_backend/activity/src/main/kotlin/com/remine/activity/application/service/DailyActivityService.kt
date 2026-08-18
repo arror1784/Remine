@@ -5,6 +5,7 @@ import com.remine.activity.application.port.inbound.GetWeeklyPatternQuery
 import com.remine.activity.application.port.inbound.RecordDailyActivityCommand
 import com.remine.activity.application.port.inbound.SyncDailyActivityCommand
 import com.remine.activity.application.port.inbound.UpdateDailyActivityCommand
+import com.remine.activity.application.port.outbound.DailyActivityRecommendationRepositoryPort
 import com.remine.activity.application.port.outbound.DailyActivityStatRepositoryPort
 import com.remine.activity.domain.DailyActivityStat
 import com.remine.common.domain.exception.EntityNotFoundException
@@ -18,6 +19,7 @@ import java.time.LocalDate
 @Transactional
 class DailyActivityService(
     private val dailyActivityStatRepository: DailyActivityStatRepositoryPort,
+    private val dailyActivityRecommendationRepository: DailyActivityRecommendationRepositoryPort,
 ) : RecordDailyActivityCommand,
     UpdateDailyActivityCommand,
     SyncDailyActivityCommand,
@@ -38,6 +40,10 @@ class DailyActivityService(
             socialContactCount = command.socialContactCount,
         )
         val saved = dailyActivityStatRepository.save(entity)
+        // Stale-cache guard: a recommendation may already be cached for this date (e.g. the
+        // stat-less default path doesn't persist one, but a retry after a partial sync could
+        // have). Drop it so the next read regenerates against the stat just recorded.
+        dailyActivityRecommendationRepository.deleteByUserIdAndStatDate(command.userId, command.statDate)
         return RecordDailyActivityCommand.Out(entity = saved)
     }
 
@@ -53,6 +59,9 @@ class DailyActivityService(
             updatedAt = Instant.now(),
         )
         val saved = dailyActivityStatRepository.save(updated)
+        // The cached recommendation (if any) was generated from the stat values this just
+        // changed — drop it so the next read reflects the update instead of serving stale advice.
+        dailyActivityRecommendationRepository.deleteByUserIdAndStatDate(command.userId, command.statDate)
         return UpdateDailyActivityCommand.Out(entity = saved)
     }
 
@@ -86,6 +95,8 @@ class DailyActivityService(
             }
         }
         val saved = dailyActivityStatRepository.saveAll(entitiesToSave)
+        // Same staleness guard as the single-day paths, for every date this batch touched.
+        statDates.forEach { dailyActivityRecommendationRepository.deleteByUserIdAndStatDate(command.userId, it) }
         return SyncDailyActivityCommand.Out(savedCount = saved.size)
     }
 

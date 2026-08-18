@@ -17,6 +17,14 @@ class DailyActivityRecommendationRepositoryAdapter(
 
     override fun save(recommendation: DailyActivityRecommendation): DailyActivityRecommendation {
         val entity = DailyActivityRecommendationJpaEntity.fromDomain(recommendation)
-        return jpaRepository.save(entity).toDomain()
+        // saveAndFlush, not save: the caller relies on catching the unique-index violation
+        // (see DailyActivityRecommendationService) to detect a concurrent generate-and-save
+        // race, which only surfaces once the INSERT actually runs — plain save() would defer
+        // that to the transaction's end-of-request flush, past where the catch can see it.
+        return jpaRepository.saveAndFlush(entity).toDomain()
+    }
+
+    override fun deleteByUserIdAndStatDate(userId: UUID, statDate: LocalDate) {
+        jpaRepository.deleteByUserIdAndStatDate(userId, statDate)
     }
 }

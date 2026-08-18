@@ -6,6 +6,7 @@ import com.remine.activity.application.port.outbound.DailyActivityRecommendation
 import com.remine.activity.application.port.outbound.DailyActivityStatRepositoryPort
 import com.remine.activity.domain.DailyActivityRecommendation
 import com.remine.activity.domain.DailyActivityRecommendationActionType
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -62,7 +63,14 @@ class DailyActivityRecommendationService(
             actionType = generated.actionType,
         )
 
-        val saved = dailyActivityRecommendationRepository.save(recommendation)
+        val saved = try {
+            dailyActivityRecommendationRepository.save(recommendation)
+        } catch (e: DataIntegrityViolationException) {
+            // Another concurrent request for the same user+date won the (userId, statDate)
+            // unique index between our cache-miss check above and this save — use whichever
+            // row it wrote instead of failing this request or double-billing the AI call.
+            dailyActivityRecommendationRepository.findByUserIdAndStatDate(query.userId, targetDate) ?: throw e
+        }
         return GetDailyActivityRecommendationQuery.Out(recommendation = saved)
     }
 

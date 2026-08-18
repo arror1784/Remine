@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface DailyActivityRecommendationJpaRepository : JpaRepository<DailyActivityRecommendationJpaEntity, UUID> {
     fun findByUserIdAndStatDate(userId: UUID, statDate: LocalDate): DailyActivityRecommendationJpaEntity?
+    fun deleteByUserIdAndStatDate(userId: UUID, statDate: LocalDate)
 }

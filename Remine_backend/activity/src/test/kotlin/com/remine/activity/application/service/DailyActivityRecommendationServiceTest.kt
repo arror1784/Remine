@@ -10,6 +10,7 @@ import com.remine.activity.domain.DailyActivityStat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.springframework.dao.DataIntegrityViolationException
 import java.time.LocalDate
 import java.util.UUID
 
@@ -54,6 +55,30 @@ class DailyActivityRecommendationServiceTest {
             store[recommendation.id] = recommendation
             return recommendation
         }
+
+        override fun deleteByUserIdAndStatDate(userId: UUID, statDate: LocalDate) {
+            store.values.removeIf { it.userId == userId && it.statDate == statDate }
+        }
+    }
+
+    /** Simulates a concurrent request that already saved [winner] under our own save's feet. */
+    private class RaceSimulatingRecommendationRepository(
+        private val winner: DailyActivityRecommendation,
+    ) : DailyActivityRecommendationRepositoryPort {
+        var findCallCount = 0
+
+        override fun findByUserIdAndStatDate(userId: UUID, statDate: LocalDate): DailyActivityRecommendation? {
+            findCallCount++
+            // Miss on the pre-generation cache check, then reveal the concurrent winner once
+            // the service re-queries after catching our own save's constraint violation.
+            return if (findCallCount == 1) null else winner
+        }
+
+        override fun save(recommendation: DailyActivityRecommendation): DailyActivityRecommendation {
+            throw DataIntegrityViolationException("duplicate key value violates unique constraint")
+        }
+
+        override fun deleteByUserIdAndStatDate(userId: UUID, statDate: LocalDate) = Unit
     }
 
     private class MockActivityRecommendationGenerator : ActivityRecommendationGeneratorPort {
@@ -177,5 +202,43 @@ class DailyActivityRecommendationServiceTest {
         val out2 = service.handle(GetDailyActivityRecommendationQuery.In(userId = userId, statDate = today))
         assertEquals(1, aiGenerator.callCount)
         assertEquals(out1.recommendation.id, out2.recommendation.id)
+    }
+
+    @Test
+    fun `returns the concurrently-saved recommendation when the unique index rejects our own save`() {
+        val statRepo = InMemoryDailyActivityStatRepository()
+        val aiGenerator = MockActivityRecommendationGenerator()
+        val userId = UUID.randomUUID()
+        val today = LocalDate.now()
+
+        statRepo.save(
+            DailyActivityStat(
+                userId = userId,
+                statDate = today,
+                sleepMinutes = 480,
+                steps = 8000,
+                outingCount = 1,
+                socialContactCount = 1,
+                sleepGoalMinutes = 480,
+                stepsGoal = 8000,
+                outingGoal = 1,
+                socialGoal = 1,
+            ),
+        )
+
+        val winner = DailyActivityRecommendation(
+            userId = userId,
+            statDate = today,
+            parentMessage = "동시 요청이 먼저 저장한 메시지",
+            childMessage = "동시 요청이 먼저 저장한 메시지",
+            actionType = DailyActivityRecommendationActionType.QUIZ,
+        )
+        val recRepo = RaceSimulatingRecommendationRepository(winner)
+        val service = DailyActivityRecommendationService(statRepo, recRepo, aiGenerator)
+
+        val out = service.handle(GetDailyActivityRecommendationQuery.In(userId = userId, statDate = today))
+
+        assertEquals(winner.id, out.recommendation.id)
+        assertEquals("동시 요청이 먼저 저장한 메시지", out.recommendation.parentMessage)
     }
 }

@@ -10,9 +10,12 @@ import com.remine.activity.application.port.inbound.ToggleChecklistItemCommand
 import com.remine.activity.application.port.inbound.UpdateDailyActivityCommand
 import com.remine.activity.application.port.outbound.ActivityCheerRepositoryPort
 import com.remine.activity.application.port.outbound.ActivityChecklistItemRepositoryPort
+import com.remine.activity.application.port.outbound.DailyActivityRecommendationRepositoryPort
 import com.remine.activity.application.port.outbound.DailyActivityStatRepositoryPort
 import com.remine.activity.domain.ActivityCheer
 import com.remine.activity.domain.ActivityChecklistItem
+import com.remine.activity.domain.DailyActivityRecommendation
+import com.remine.activity.domain.DailyActivityRecommendationActionType
 import com.remine.activity.domain.DailyActivityStat
 import com.remine.common.domain.exception.EntityNotFoundException
 import com.remine.common.domain.exception.ForbiddenException
@@ -62,6 +65,23 @@ class ActivityServiceTest {
         override fun saveAll(stats: Collection<DailyActivityStat>): List<DailyActivityStat> {
             stats.forEach { store[it.id] = it }
             return stats.toList()
+        }
+    }
+
+    private class InMemoryDailyActivityRecommendationRepository : DailyActivityRecommendationRepositoryPort {
+        val store = mutableMapOf<UUID, DailyActivityRecommendation>()
+
+        override fun findByUserIdAndStatDate(userId: UUID, statDate: LocalDate): DailyActivityRecommendation? {
+            return store.values.firstOrNull { it.userId == userId && it.statDate == statDate }
+        }
+
+        override fun save(recommendation: DailyActivityRecommendation): DailyActivityRecommendation {
+            store[recommendation.id] = recommendation
+            return recommendation
+        }
+
+        override fun deleteByUserIdAndStatDate(userId: UUID, statDate: LocalDate) {
+            store.values.removeIf { it.userId == userId && it.statDate == statDate }
         }
     }
 
@@ -123,7 +143,7 @@ class ActivityServiceTest {
     @Test
     fun `record daily activity creates new stat and rejects duplicate date`() {
         val repo = InMemoryDailyActivityStatRepository()
-        val service = DailyActivityService(repo)
+        val service = DailyActivityService(repo, InMemoryDailyActivityRecommendationRepository())
         val userId = UUID.randomUUID()
         val today = LocalDate.now()
 
@@ -158,9 +178,10 @@ class ActivityServiceTest {
     }
 
     @Test
-    fun `update daily activity updates existing stat partially`() {
+    fun `update daily activity updates existing stat partially and drops the cached recommendation`() {
         val repo = InMemoryDailyActivityStatRepository()
-        val service = DailyActivityService(repo)
+        val recRepo = InMemoryDailyActivityRecommendationRepository()
+        val service = DailyActivityService(repo, recRepo)
         val userId = UUID.randomUUID()
         val today = LocalDate.now()
 
@@ -172,6 +193,16 @@ class ActivityServiceTest {
                 steps = 5000,
                 outingCount = 1,
                 socialContactCount = 1,
+            )
+        )
+        // Stand in for a recommendation generated against the stat above, before the update below.
+        recRepo.save(
+            DailyActivityRecommendation(
+                userId = userId,
+                statDate = today,
+                parentMessage = "업데이트 전 통계로 만든 추천",
+                childMessage = "업데이트 전 통계로 만든 추천",
+                actionType = DailyActivityRecommendationActionType.NONE,
             )
         )
 
@@ -190,12 +221,13 @@ class ActivityServiceTest {
         assertEquals(8500, updated.entity.steps)
         assertEquals(1, updated.entity.outingCount)
         assertEquals(3, updated.entity.socialContactCount)
+        assertNull(recRepo.findByUserIdAndStatDate(userId, today))
     }
 
     @Test
     fun `sync daily activity performs bulk upsert`() {
         val repo = InMemoryDailyActivityStatRepository()
-        val service = DailyActivityService(repo)
+        val service = DailyActivityService(repo, InMemoryDailyActivityRecommendationRepository())
         val userId = UUID.randomUUID()
         val date1 = LocalDate.of(2026, 8, 1)
         val date2 = LocalDate.of(2026, 8, 2)
@@ -228,7 +260,7 @@ class ActivityServiceTest {
     @Test
     fun `today summary returns computed percents capped at 100`() {
         val repo = InMemoryDailyActivityStatRepository()
-        val service = DailyActivityService(repo)
+        val service = DailyActivityService(repo, InMemoryDailyActivityRecommendationRepository())
         val userId = UUID.randomUUID()
         val today = LocalDate.now()
 
@@ -258,7 +290,7 @@ class ActivityServiceTest {
     @Test
     fun `weekly pattern returns 7 days chronologically`() {
         val repo = InMemoryDailyActivityStatRepository()
-        val service = DailyActivityService(repo)
+        val service = DailyActivityService(repo, InMemoryDailyActivityRecommendationRepository())
         val userId = UUID.randomUUID()
         val today = LocalDate.now()
 
