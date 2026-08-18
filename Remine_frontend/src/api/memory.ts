@@ -6,6 +6,7 @@ export interface MemoryPhoto {
   photoUrl: string
   memoryLabel: string
   status: string
+  attempted: boolean
   createdAt: string
   updatedAt: string
 }

@@ -63,7 +63,7 @@ class MemoryController(
                 ownerUserId = principal.parentUserId(),
             ),
         )
-        return ApiResponse.ok(result.items.map { MemoryPhotoResponse.from(it) })
+        return ApiResponse.ok(result.items.map { MemoryPhotoResponse.from(it, attempted = result.attemptedPhotoIds.contains(it.id)) })
     }
 
     @GetMapping("/stats")

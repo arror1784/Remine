@@ -12,11 +12,12 @@ data class MemoryPhotoResponse(
     val photoUrl: String,
     val memoryLabel: String,
     val status: String,
+    val attempted: Boolean,
     val createdAt: Instant,
     val updatedAt: Instant,
 ) {
     companion object {
-        fun from(domain: MemoryPhoto): MemoryPhotoResponse =
+        fun from(domain: MemoryPhoto, attempted: Boolean = false): MemoryPhotoResponse =
             MemoryPhotoResponse(
                 id = domain.id,
                 ownerUserId = domain.ownerUserId,
@@ -25,6 +26,7 @@ data class MemoryPhotoResponse(
                 photoUrl = domain.photoUrl,
                 memoryLabel = domain.memoryLabel,
                 status = domain.status.name,
+                attempted = attempted,
                 createdAt = domain.createdAt,
                 updatedAt = domain.updatedAt,
             )

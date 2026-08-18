@@ -86,7 +86,7 @@ export default function MemoryGallery() {
                   <p data-testid="memory-title" className="text-[14px] text-remine-dark">{m.title}</p>
                   <p data-testid="memory-date" className="text-[13px] text-remine-muted">{formatYearMonth(m.createdAt)}</p>
                 </div>
-                {m.status === 'QUIZ_ACTIVE' && (
+                {m.attempted && (
                   <span className="absolute right-2 top-2 flex size-[26px] items-center justify-center rounded-full bg-remine-pink text-white">
                     ✓
                   </span>

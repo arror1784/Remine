@@ -80,6 +80,9 @@ class FakeMemoryQuizAttemptRepository : MemoryQuizAttemptRepositoryPort {
 
     override fun existsByMemoryPhotoIdAndCompletedAtGreaterThanEqual(memoryPhotoId: UUID, since: Instant): Boolean =
         attempts.any { it.memoryPhotoId == memoryPhotoId && !it.completedAt.isBefore(since) }
+
+    override fun findAttemptedPhotoIds(memoryPhotoIds: Collection<UUID>): Set<UUID> =
+        attempts.filter { it.memoryPhotoId in memoryPhotoIds }.map { it.memoryPhotoId }.toSet()
 }
 
 class MemoryServicesTest {
@@ -118,6 +121,40 @@ class MemoryServicesTest {
         assertEquals("2022년 여름", result.entity.memoryLabel)
         assertEquals(MemoryPhotoStatus.PENDING, result.entity.status)
         assertNotNull(photoRepository.findById(result.entity.id))
+    }
+
+    @Test
+    fun `GetMemoryGalleryService flags only photos with a saved attempt`() {
+        val service = GetMemoryGalleryService(photoRepository, attemptRepository)
+        val owner = UUID.randomUUID()
+        val attemptedPhoto = MemoryPhoto(
+            ownerUserId = owner,
+            uploadedByUserId = UUID.randomUUID(),
+            title = "Attempted",
+            photoUrl = "url",
+            memoryLabel = "label",
+        )
+        val unattemptedPhoto = MemoryPhoto(
+            ownerUserId = owner,
+            uploadedByUserId = UUID.randomUUID(),
+            title = "Not attempted",
+            photoUrl = "url",
+            memoryLabel = "label",
+        )
+        photoRepository.save(attemptedPhoto)
+        photoRepository.save(unattemptedPhoto)
+        attemptRepository.save(
+            MemoryQuizAttempt(
+                memoryPhotoId = attemptedPhoto.id,
+                respondentUserId = owner,
+                correctCount = 1,
+                totalCount = 1,
+            ),
+        )
+
+        val result = service.handle(GetMemoryGalleryQuery.In(ownerUserId = owner))
+
+        assertEquals(setOf(attemptedPhoto.id), result.attemptedPhotoIds)
     }
 
     @Test

@@ -149,22 +149,33 @@ class MemoryControllerTest {
     }
 
     @Test
-    fun `getMemoryGallery returns list for parentUserId`() {
+    fun `getMemoryGallery returns list for parentUserId with attempted flag from the query result`() {
         var queriedOwnerId: UUID? = null
+        val attemptedPhotoId = UUID.randomUUID()
+        val unattemptedPhotoId = UUID.randomUUID()
         val galleryQuery = object : GetMemoryGalleryQuery {
             override fun handle(query: GetMemoryGalleryQuery.In): GetMemoryGalleryQuery.Out {
                 queriedOwnerId = query.ownerUserId
                 return GetMemoryGalleryQuery.Out(
                     items = listOf(
                         MemoryPhoto(
-                            id = UUID.randomUUID(),
+                            id = attemptedPhotoId,
                             ownerUserId = query.ownerUserId,
                             uploadedByUserId = childId,
                             title = "Photo 1",
                             photoUrl = "url",
                             memoryLabel = "label",
                         ),
+                        MemoryPhoto(
+                            id = unattemptedPhotoId,
+                            ownerUserId = query.ownerUserId,
+                            uploadedByUserId = childId,
+                            title = "Photo 2",
+                            photoUrl = "url",
+                            memoryLabel = "label",
+                        ),
                     ),
+                    attemptedPhotoIds = setOf(attemptedPhotoId),
                 )
             }
         }
@@ -173,8 +184,10 @@ class MemoryControllerTest {
         val response = controller.getMemoryGallery(principal = parentPrincipal)
 
         assertEquals(parentId, queriedOwnerId)
-        assertEquals(1, response.data?.size)
+        assertEquals(2, response.data?.size)
         assertEquals("Photo 1", response.data?.get(0)?.title)
+        assertEquals(true, response.data?.get(0)?.attempted)
+        assertEquals(false, response.data?.get(1)?.attempted)
     }
 
     @Test

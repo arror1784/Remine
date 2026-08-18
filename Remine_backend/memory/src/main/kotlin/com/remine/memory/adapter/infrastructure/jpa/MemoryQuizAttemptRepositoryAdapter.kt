@@ -18,4 +18,7 @@ class MemoryQuizAttemptRepositoryAdapter(
 
     override fun existsByMemoryPhotoIdAndCompletedAtGreaterThanEqual(memoryPhotoId: UUID, since: Instant): Boolean =
         jpaRepository.existsByMemoryPhotoIdAndCompletedAtGreaterThanEqual(memoryPhotoId, since)
+
+    override fun findAttemptedPhotoIds(memoryPhotoIds: Collection<UUID>): Set<UUID> =
+        if (memoryPhotoIds.isEmpty()) emptySet() else jpaRepository.findDistinctMemoryPhotoIdByMemoryPhotoIdIn(memoryPhotoIds)
 }

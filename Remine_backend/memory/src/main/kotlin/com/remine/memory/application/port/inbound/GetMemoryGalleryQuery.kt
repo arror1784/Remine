@@ -12,5 +12,6 @@ interface GetMemoryGalleryQuery {
 
     data class Out(
         val items: List<MemoryPhoto>,
+        val attemptedPhotoIds: Set<UUID> = emptySet(),
     )
 }
