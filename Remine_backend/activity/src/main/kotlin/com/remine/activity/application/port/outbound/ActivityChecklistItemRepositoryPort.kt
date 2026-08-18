@@ -9,4 +9,7 @@ interface ActivityChecklistItemRepositoryPort {
     fun findByUserIdAndStatDate(userId: UUID, statDate: LocalDate): List<ActivityChecklistItem>
     fun save(item: ActivityChecklistItem): ActivityChecklistItem
     fun saveAll(items: Collection<ActivityChecklistItem>): List<ActivityChecklistItem>
+
+    /** Used by the demo-reset utility (see app-api's DemoResetService) to wipe a demo account's history. */
+    fun deleteAllByUserId(userId: UUID)
 }

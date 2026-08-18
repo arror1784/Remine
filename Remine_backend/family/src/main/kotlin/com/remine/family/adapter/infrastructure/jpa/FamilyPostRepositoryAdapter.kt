@@ -38,4 +38,12 @@ class FamilyPostRepositoryAdapter(
     override fun existsById(id: UUID): Boolean {
         return jpaRepository.existsById(id)
     }
+
+    override fun deleteAllByAuthorUserId(authorUserId: UUID) {
+        val entities = jpaRepository.findAllByAuthorUserId(authorUserId)
+        if (entities.isNotEmpty()) {
+            entities.forEach { it.softDelete() }
+            jpaRepository.saveAll(entities)
+        }
+    }
 }

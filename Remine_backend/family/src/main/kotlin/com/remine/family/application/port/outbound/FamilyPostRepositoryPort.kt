@@ -9,4 +9,7 @@ interface FamilyPostRepositoryPort {
     fun findById(id: UUID): FamilyPost?
     fun findFeed(pairUserIds: Set<UUID>, cursor: Instant?, limit: Int): List<FamilyPost>
     fun existsById(id: UUID): Boolean
+
+    /** Used by the demo-reset utility (see app-api's DemoResetService) to wipe a demo account's posts. */
+    fun deleteAllByAuthorUserId(authorUserId: UUID)
 }

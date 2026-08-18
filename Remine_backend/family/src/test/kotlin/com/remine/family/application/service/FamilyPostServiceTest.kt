@@ -283,6 +283,10 @@ class FamilyPostServiceTest {
         }
 
         override fun existsById(id: UUID): Boolean = posts.containsKey(id)
+
+        override fun deleteAllByAuthorUserId(authorUserId: UUID) {
+            posts.values.removeIf { it.authorUserId == authorUserId }
+        }
     }
 
     private class FakeLikeRepository : FamilyPostLikeRepositoryPort {

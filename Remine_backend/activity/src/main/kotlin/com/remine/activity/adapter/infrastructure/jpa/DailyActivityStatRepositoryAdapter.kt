@@ -37,4 +37,12 @@ class DailyActivityStatRepositoryAdapter(
         val entities = stats.map { DailyActivityStatJpaEntity.fromDomain(it) }
         return jpaRepository.saveAll(entities).map { it.toDomain() }
     }
+
+    override fun deleteAllByUserId(userId: UUID) {
+        val entities = jpaRepository.findAllByUserId(userId)
+        if (entities.isNotEmpty()) {
+            entities.forEach { it.softDelete() }
+            jpaRepository.saveAll(entities)
+        }
+    }
 }

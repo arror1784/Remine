@@ -1,6 +1,7 @@
 package com.remine.user.application.port.inbound
 
 import com.remine.auth.domain.Role
+import com.remine.user.domain.DemoVariant
 import java.util.UUID
 
 interface DemoLoginCommand {
@@ -8,6 +9,7 @@ interface DemoLoginCommand {
 
     data class In(
         val role: Role,
+        val variant: DemoVariant = DemoVariant.EVAL,
     )
 
     data class Out(

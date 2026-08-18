@@ -13,4 +13,7 @@ interface MemoryPhotoRepositoryPort {
     fun countByOwnerUserIdAndStatus(ownerUserId: UUID, status: MemoryPhotoStatus): Int
     fun countByOwnerUserIdAndCreatedAtGreaterThanEqual(ownerUserId: UUID, startOfMonth: Instant): Int
     fun findAllByOwnerUserIdAndStatusOrderByCreatedAtDesc(ownerUserId: UUID, status: MemoryPhotoStatus): List<MemoryPhoto>
+
+    /** Used by the demo-reset utility (see app-api's DemoResetService) to wipe a demo account's photos. */
+    fun deleteAllByOwnerUserId(ownerUserId: UUID)
 }

@@ -21,4 +21,12 @@ class MemoryQuizAttemptRepositoryAdapter(
 
     override fun findAttemptedPhotoIds(memoryPhotoIds: Collection<UUID>): Set<UUID> =
         if (memoryPhotoIds.isEmpty()) emptySet() else jpaRepository.findDistinctMemoryPhotoIdByMemoryPhotoIdIn(memoryPhotoIds)
+
+    override fun deleteAllByMemoryPhotoId(memoryPhotoId: UUID) {
+        val entities = jpaRepository.findAllByMemoryPhotoId(memoryPhotoId)
+        if (entities.isNotEmpty()) {
+            entities.forEach { it.softDelete() }
+            jpaRepository.saveAll(entities)
+        }
+    }
 }

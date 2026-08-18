@@ -52,6 +52,10 @@ class FakeMemoryPhotoRepository : MemoryPhotoRepositoryPort {
 
     override fun findAllByOwnerUserIdAndStatusOrderByCreatedAtDesc(ownerUserId: UUID, status: MemoryPhotoStatus): List<MemoryPhoto> =
         photos.values.filter { it.ownerUserId == ownerUserId && it.status == status }.sortedByDescending { it.createdAt }
+
+    override fun deleteAllByOwnerUserId(ownerUserId: UUID) {
+        photos.values.removeIf { it.ownerUserId == ownerUserId }
+    }
 }
 
 class FakeMemoryQuizQuestionRepository : MemoryQuizQuestionRepositoryPort {
@@ -85,6 +89,10 @@ class FakeMemoryQuizAttemptRepository : MemoryQuizAttemptRepositoryPort {
 
     override fun findAttemptedPhotoIds(memoryPhotoIds: Collection<UUID>): Set<UUID> =
         attempts.filter { it.memoryPhotoId in memoryPhotoIds }.map { it.memoryPhotoId }.toSet()
+
+    override fun deleteAllByMemoryPhotoId(memoryPhotoId: UUID) {
+        attempts.removeIf { it.memoryPhotoId == memoryPhotoId }
+    }
 }
 
 class FakeImageStoragePort : ImageStoragePort {

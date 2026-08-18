@@ -10,4 +10,6 @@ interface MemoryQuizAttemptJpaRepository : JpaRepository<MemoryQuizAttemptJpaEnt
 
     @Query("SELECT DISTINCT a.memoryPhotoId FROM MemoryQuizAttemptJpaEntity a WHERE a.memoryPhotoId IN :memoryPhotoIds")
     fun findDistinctMemoryPhotoIdByMemoryPhotoIdIn(memoryPhotoIds: Collection<UUID>): Set<UUID>
+
+    fun findAllByMemoryPhotoId(memoryPhotoId: UUID): List<MemoryQuizAttemptJpaEntity>
 }

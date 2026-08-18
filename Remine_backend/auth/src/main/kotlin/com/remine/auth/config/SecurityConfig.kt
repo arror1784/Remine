@@ -43,6 +43,8 @@ class SecurityConfig(
                     .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .antMatchers("/api/v1/auth/**").permitAll()
                     .antMatchers("/api/v1/users/signup").permitAll()
+                    // No credential by design — see DemoResetController's kdoc for why this is safe.
+                    .antMatchers("/api/v1/admin/demo/**").permitAll()
                     .antMatchers("/h2-console/**").permitAll()
                     // Uploaded memory-photo images are rendered via plain <img> tags, which
                     // can't attach an Authorization header — must stay publicly readable.

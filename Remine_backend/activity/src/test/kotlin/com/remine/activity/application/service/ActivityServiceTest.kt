@@ -68,6 +68,10 @@ class ActivityServiceTest {
             stats.forEach { store[it.id] = it }
             return stats.toList()
         }
+
+        override fun deleteAllByUserId(userId: UUID) {
+            store.values.removeIf { it.userId == userId }
+        }
     }
 
     private class InMemoryDailyActivityRecommendationRepository : DailyActivityRecommendationRepositoryPort {
@@ -123,6 +127,10 @@ class ActivityServiceTest {
         override fun saveAll(items: Collection<ActivityChecklistItem>): List<ActivityChecklistItem> {
             items.forEach { store[it.id] = it }
             return items.toList()
+        }
+
+        override fun deleteAllByUserId(userId: UUID) {
+            store.values.removeIf { it.userId == userId }
         }
     }
 

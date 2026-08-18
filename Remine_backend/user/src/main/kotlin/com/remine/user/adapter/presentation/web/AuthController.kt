@@ -25,7 +25,7 @@ class AuthController(
     fun demoLogin(
         @Valid @RequestBody request: DemoLoginRequest,
     ): ApiResponse<DemoLoginResponse> {
-        val out = demoLoginCommand.handle(DemoLoginCommand.In(role = request.role))
+        val out = demoLoginCommand.handle(DemoLoginCommand.In(role = request.role, variant = request.variant))
         return ApiResponse.ok(
             DemoLoginResponse(
                 userId = out.userId,

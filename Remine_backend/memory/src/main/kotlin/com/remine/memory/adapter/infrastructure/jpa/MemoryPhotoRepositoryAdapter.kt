@@ -41,4 +41,12 @@ class MemoryPhotoRepositoryAdapter(
 
     override fun findAllByOwnerUserIdAndStatusOrderByCreatedAtDesc(ownerUserId: UUID, status: MemoryPhotoStatus): List<MemoryPhoto> =
         jpaRepository.findAllByOwnerUserIdAndStatusOrderByCreatedAtDesc(ownerUserId, status).map { it.toDomain() }
+
+    override fun deleteAllByOwnerUserId(ownerUserId: UUID) {
+        val entities = jpaRepository.findAllByOwnerUserIdOrderByCreatedAtDesc(ownerUserId)
+        if (entities.isNotEmpty()) {
+            entities.forEach { it.softDelete() }
+            jpaRepository.saveAll(entities)
+        }
+    }
 }

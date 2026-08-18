@@ -22,4 +22,12 @@ class ActivityTimelineEventRepositoryAdapter(
         val entity = ActivityTimelineEventJpaEntity.fromDomain(event)
         return jpaRepository.save(entity).toDomain()
     }
+
+    override fun deleteAllByUserId(userId: UUID) {
+        val entities = jpaRepository.findAllByUserId(userId)
+        if (entities.isNotEmpty()) {
+            entities.forEach { it.softDelete() }
+            jpaRepository.saveAll(entities)
+        }
+    }
 }

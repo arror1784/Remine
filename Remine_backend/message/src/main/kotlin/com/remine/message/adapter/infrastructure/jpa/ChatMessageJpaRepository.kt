@@ -50,4 +50,7 @@ interface ChatMessageJpaRepository : JpaRepository<ChatMessageJpaEntity, UUID> {
         @Param("userAId") userAId: UUID,
         @Param("userBId") userBId: UUID,
     ): Long
+
+    @Query("SELECT m FROM ChatMessageJpaEntity m WHERE m.senderId = :userId OR m.recipientId = :userId")
+    fun findAllByParticipant(@Param("userId") userId: UUID): List<ChatMessageJpaEntity>
 }

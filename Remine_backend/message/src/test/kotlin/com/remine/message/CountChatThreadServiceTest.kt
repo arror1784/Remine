@@ -20,6 +20,8 @@ class CountChatThreadServiceTest {
         override fun findThread(userAId: UUID, userBId: UUID, before: Instant?, limit: Int): List<ChatMessage> = emptyList()
 
         override fun countByPair(userAId: UUID, userBId: UUID): Int = 1234
+
+        override fun deleteAllByParticipant(userId: UUID) {}
     }
 
     private val service = CountChatThreadService(fakeRepo)

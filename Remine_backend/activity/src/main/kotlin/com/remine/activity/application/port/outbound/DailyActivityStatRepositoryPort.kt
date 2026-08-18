@@ -10,4 +10,7 @@ interface DailyActivityStatRepositoryPort {
     fun findByUserIdAndStatDateBetween(userId: UUID, startDate: LocalDate, endDate: LocalDate): List<DailyActivityStat>
     fun save(stat: DailyActivityStat): DailyActivityStat
     fun saveAll(stats: Collection<DailyActivityStat>): List<DailyActivityStat>
+
+    /** Used by the demo-reset utility (see app-api's DemoResetService) to wipe a demo account's history. */
+    fun deleteAllByUserId(userId: UUID)
 }

@@ -30,6 +30,7 @@ import ChildFamily from '@/pages/child/Family'
 import FamilyMessage from '@/pages/family/Message'
 import FamilyCall from '@/pages/family/Call'
 import FamilyNotifications from '@/pages/family/Notifications'
+import DemoReset from '@/pages/admin/DemoReset'
 
 function App() {
   const location = useLocation()
@@ -57,6 +58,7 @@ function App() {
           <Route path="/" element={<Splash />} />
           <Route path="/login" element={<Login />} />
           <Route path="/onboarding" element={<OnboardingFlow />} />
+          <Route path="/admin/demo-reset" element={<DemoReset />} />
 
           <Route path="/switch-mode" element={<SwitchMode />} />
 

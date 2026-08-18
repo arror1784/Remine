@@ -25,6 +25,8 @@ class GetChatThreadServiceTest {
         }
 
         override fun countByPair(userAId: UUID, userBId: UUID): Int = 2
+
+        override fun deleteAllByParticipant(userId: UUID) {}
     }
 
     private val service = GetChatThreadService(fakeRepo)

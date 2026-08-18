@@ -27,6 +27,10 @@ class SendMessageServiceTest {
         }
 
         override fun countByPair(userAId: UUID, userBId: UUID): Int = messages.size
+
+        override fun deleteAllByParticipant(userId: UUID) {
+            messages.removeIf { it.senderId == userId || it.recipientId == userId }
+        }
     }
 
     private val fakeCreateNotification = object : CreateNotificationCommand {

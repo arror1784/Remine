@@ -34,4 +34,12 @@ class ChatMessageRepositoryAdapter(
 
     override fun countByPair(userAId: UUID, userBId: UUID): Int =
         jpaRepository.countThread(userAId, userBId).toInt()
+
+    override fun deleteAllByParticipant(userId: UUID) {
+        val entities = jpaRepository.findAllByParticipant(userId)
+        if (entities.isNotEmpty()) {
+            entities.forEach { it.softDelete() }
+            jpaRepository.saveAll(entities)
+        }
+    }
 }

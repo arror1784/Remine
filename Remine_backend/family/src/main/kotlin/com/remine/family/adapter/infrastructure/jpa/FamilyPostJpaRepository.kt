@@ -21,4 +21,6 @@ interface FamilyPostJpaRepository : JpaRepository<FamilyPostJpaEntity, UUID> {
         @Param("cursor") cursor: Instant,
         pageable: Pageable,
     ): List<FamilyPostJpaEntity>
+
+    fun findAllByAuthorUserId(authorUserId: UUID): List<FamilyPostJpaEntity>
 }

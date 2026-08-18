@@ -12,4 +12,5 @@ interface DailyActivityStatJpaRepository : JpaRepository<DailyActivityStatJpaEnt
         startDate: LocalDate,
         endDate: LocalDate,
     ): List<DailyActivityStatJpaEntity>
+    fun findAllByUserId(userId: UUID): List<DailyActivityStatJpaEntity>
 }

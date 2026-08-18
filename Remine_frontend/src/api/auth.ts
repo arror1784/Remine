@@ -20,7 +20,9 @@ interface SignUpResponse {
   accessToken: string
 }
 
-export async function demoLogin(role: Role): Promise<{
+export type DemoVariant = 'EVAL' | 'DEMO'
+
+export async function demoLogin(role: Role, variant: DemoVariant = 'EVAL'): Promise<{
   userId: string
   role: Role
   name: string
@@ -29,9 +31,16 @@ export async function demoLogin(role: Role): Promise<{
 }> {
   const response = await http.post<ApiEnvelope<DemoLoginResponse>>('/api/v1/auth/demo-login', {
     role: role.toUpperCase(),
+    variant,
   })
   const data = unwrap(response.data)
   return { ...data, role: data.role.toLowerCase() as Role }
+}
+
+// No-credential admin utility — see the backend's DemoResetController kdoc for why this is safe
+// (it can only ever touch the fixed DEMO variant's account pair, never EVAL or a real user).
+export async function resetDemoData(): Promise<void> {
+  await http.post('/api/v1/admin/demo/reset')
 }
 
 export async function pairWithInviteCode(inviteCode: string): Promise<PairingResponse> {

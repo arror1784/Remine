@@ -42,6 +42,10 @@ class DailyActivityRecommendationServiceTest {
             stats.forEach { store[it.id] = it }
             return stats.toList()
         }
+
+        override fun deleteAllByUserId(userId: UUID) {
+            store.values.removeIf { it.userId == userId }
+        }
     }
 
     private class InMemoryDailyActivityRecommendationRepository : DailyActivityRecommendationRepositoryPort {

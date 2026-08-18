@@ -29,4 +29,12 @@ class ActivityChecklistItemRepositoryAdapter(
         val entities = items.map { ActivityChecklistItemJpaEntity.fromDomain(it) }
         return jpaRepository.saveAll(entities).map { it.toDomain() }
     }
+
+    override fun deleteAllByUserId(userId: UUID) {
+        val entities = jpaRepository.findAllByUserId(userId)
+        if (entities.isNotEmpty()) {
+            entities.forEach { it.softDelete() }
+            jpaRepository.saveAll(entities)
+        }
+    }
 }
