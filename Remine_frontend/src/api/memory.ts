@@ -44,8 +44,19 @@ export interface QuizQuestion {
   sortOrder: number
 }
 
+export interface MemoryStats {
+  totalPhotos: number
+  quizActiveCount: number
+  addedThisMonth: number
+}
+
 export async function getMemoryGallery(): Promise<MemoryPhoto[]> {
   const response = await http.get<ApiEnvelope<MemoryPhoto[]>>('/api/v1/memories')
+  return unwrap(response.data)
+}
+
+export async function getMemoryStats(): Promise<MemoryStats> {
+  const response = await http.get<ApiEnvelope<MemoryStats>>('/api/v1/memories/stats')
   return unwrap(response.data)
 }
 

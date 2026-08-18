@@ -1,20 +1,45 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
-import springOuting from '@/assets/memories/family-trip.png'
-import birthdayCake from '@/assets/memories/birthday-cake.png'
-import grandchildWalk from '@/assets/memories/grandchild-walk.png'
+import { getMemoryGallery, getMemoryStats, type MemoryPhoto, type MemoryStats } from '@/api/memory'
 import { COLORS } from '@/theme'
 
-const PHOTOS = [
-  { photo: springOuting, title: '2022년 여름 가족 여행', date: '2022년 7월', addedBy: '지영님 추가', status: '퀴즈 활용 중' },
-  { photo: birthdayCake, title: '어머니 생신', date: '2025년 12월', addedBy: '민호님 추가', status: '퀴즈 활용 중' },
-  { photo: grandchildWalk, title: '손주와 산책', date: '2025년 10월', addedBy: '지영님 추가', status: '대기 중' },
-]
+function formatYearMonth(iso: string) {
+  const d = new Date(iso)
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월`
+}
+
+function statusBadge(status: string) {
+  return status === 'QUIZ_ACTIVE' ? '퀴즈 활용 중' : '대기 중'
+}
 
 export default function ChildMemoryGallery() {
   const location = useLocation()
+  const [photos, setPhotos] = useState<MemoryPhoto[]>([])
+  const [stats, setStats] = useState<MemoryStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    Promise.all([getMemoryGallery(), getMemoryStats()])
+      .then(([gallery, memoryStats]) => {
+        if (!active) return
+        setPhotos(gallery)
+        setStats(memoryStats)
+      })
+      .catch(() => {
+        if (active) setFailed(true)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
@@ -42,44 +67,54 @@ export default function ChildMemoryGallery() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2.5">
-          <div className="flex flex-col items-center gap-1 rounded-[20px] border border-remine-border bg-white py-4">
-            <span className="text-[22px] font-semibold text-remine-blue">3장</span>
-            <span className="text-[13px] text-remine-muted">총 사진</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 rounded-[20px] border border-remine-border bg-white py-4">
-            <span className="text-[22px] font-semibold text-remine-pink">2장</span>
-            <span className="text-[13px] text-remine-muted">퀴즈 활용</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 rounded-[20px] border border-remine-border bg-white py-4">
-            <span className="text-[22px] font-semibold text-remine-orange">1장</span>
-            <span className="text-[13px] text-remine-muted">이번 달 추가</span>
-          </div>
-        </div>
+        {loading && <p className="py-10 text-center text-[15px] text-remine-muted">불러오는 중...</p>}
 
-        <div className="flex flex-col gap-3">
-          <h2 className="text-[18px] font-semibold text-remine-dark">추가된 사진</h2>
-          {PHOTOS.map((p) => (
-            <div key={p.title} className="flex items-center gap-3.5 rounded-[20px] border border-remine-border bg-white p-3">
-              <img src={p.photo} alt={p.title} className="size-[68px] shrink-0 rounded-xl object-cover" />
-              <div className="flex-1">
-                <p className="text-[15px] font-medium text-remine-dark">{p.title}</p>
-                <p className="text-[13px] text-remine-muted">
-                  {p.date} · {p.addedBy}
-                </p>
+        {!loading && failed && <p className="py-10 text-center text-[15px] text-remine-muted">불러오지 못했어요</p>}
+
+        {!loading && !failed && (
+          <>
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="flex flex-col items-center gap-1 rounded-[20px] border border-remine-border bg-white py-4">
+                <span className="text-[22px] font-semibold text-remine-blue">{stats?.totalPhotos ?? 0}장</span>
+                <span className="text-[13px] text-remine-muted">총 사진</span>
               </div>
-              <span
-                className="shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold"
-                style={{
-                  backgroundColor: p.status === '퀴즈 활용 중' ? COLORS.highlightBlue : COLORS.surface,
-                  color: p.status === '퀴즈 활용 중' ? COLORS.blue : COLORS.muted,
-                }}
-              >
-                {p.status}
-              </span>
+              <div className="flex flex-col items-center gap-1 rounded-[20px] border border-remine-border bg-white py-4">
+                <span className="text-[22px] font-semibold text-remine-pink">{stats?.quizActiveCount ?? 0}장</span>
+                <span className="text-[13px] text-remine-muted">퀴즈 활용</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 rounded-[20px] border border-remine-border bg-white py-4">
+                <span className="text-[22px] font-semibold text-remine-orange">{stats?.addedThisMonth ?? 0}장</span>
+                <span className="text-[13px] text-remine-muted">이번 달 추가</span>
+              </div>
             </div>
-          ))}
-        </div>
+
+            {photos.length === 0 ? (
+              <p className="py-10 text-center text-[15px] text-remine-muted">아직 등록된 추억 사진이 없어요</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <h2 className="text-[18px] font-semibold text-remine-dark">추가된 사진</h2>
+                {photos.map((p) => (
+                  <div key={p.id} className="flex items-center gap-3.5 rounded-[20px] border border-remine-border bg-white p-3">
+                    <img src={p.photoUrl} alt={p.title} className="size-[68px] shrink-0 rounded-xl object-cover" />
+                    <div className="flex-1">
+                      <p className="text-[15px] font-medium text-remine-dark">{p.title}</p>
+                      <p className="text-[13px] text-remine-muted">{formatYearMonth(p.createdAt)}</p>
+                    </div>
+                    <span
+                      className="shrink-0 rounded-full px-2.5 py-1 text-[12px] font-semibold"
+                      style={{
+                        backgroundColor: p.status === 'QUIZ_ACTIVE' ? COLORS.highlightBlue : COLORS.surface,
+                        color: p.status === 'QUIZ_ACTIVE' ? COLORS.blue : COLORS.muted,
+                      }}
+                    >
+                      {statusBadge(p.status)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         <Link
           to="/child/memories/add"
