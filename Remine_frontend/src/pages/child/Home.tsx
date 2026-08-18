@@ -219,7 +219,8 @@ export default function ChildHome() {
         </div>
 
         <Link
-          to="/child/family/message"
+          to="/child/home/message"
+          state={{ backgroundLocation: location }}
           className="flex h-[52px] items-center justify-center gap-2 rounded-2xl bg-remine-dark text-[16px] font-semibold text-white"
         >
           💬 어머니께 메시지 보내기

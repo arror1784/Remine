@@ -21,6 +21,7 @@ import QuizReminder from '@/pages/parent/reminders/QuizReminder'
 import ChildHome from '@/pages/child/Home'
 import ChildToday from '@/pages/child/Today'
 import CheerMessage from '@/pages/child/CheerMessage'
+import SendHomeMessage from '@/pages/child/SendHomeMessage'
 import ChildMyPage from '@/pages/child/MyPage'
 import ChildMemoryGallery from '@/pages/child/memories/Gallery'
 import AddMemoryPhoto from '@/pages/child/memories/AddPhoto'
@@ -76,6 +77,7 @@ function App() {
           <Route path="/child/home" element={<ChildHome />} />
           <Route path="/child/today" element={<ChildToday />} />
           <Route path="/child/today/cheer/:itemType" element={<CheerMessage />} />
+          <Route path="/child/home/message" element={<SendHomeMessage />} />
           <Route path="/child/mypage" element={<ChildMyPage />} />
           <Route path="/child/notifications" element={<FamilyNotifications role="child" accentColor={COLORS.blue} />} />
           <Route path="/child/memories" element={<ChildMemoryGallery />} />
@@ -97,6 +99,7 @@ function App() {
             <Route path="/parent/notifications" element={<FamilyNotifications role="parent" accentColor={COLORS.pink} />} />
             <Route path="/child/memories/add" element={<AddMemoryPhoto />} />
             <Route path="/child/today/cheer/:itemType" element={<CheerMessage />} />
+            <Route path="/child/home/message" element={<SendHomeMessage />} />
             <Route path="/child/notifications" element={<FamilyNotifications role="child" accentColor={COLORS.blue} />} />
           </Routes>
         </div>
