@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
@@ -19,11 +20,19 @@ const TIMELINE = [
 ]
 
 export default function ChildToday() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [cheeredIds, setCheeredIds] = useState<string[]>([])
 
-  const sendCheer = (id: string) => {
-    setCheeredIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
-  }
+  useEffect(() => {
+    const cheeredItemId = (location.state as { cheeredItemId?: string } | null)?.cheeredItemId
+    if (!cheeredItemId) return
+    setCheeredIds((prev) => (prev.includes(cheeredItemId) ? prev : [...prev, cheeredItemId]))
+    navigate(location.pathname, { replace: true, state: {} })
+    // Only ever react to a freshly-arrived cheeredItemId from CheerMessage's navigate() —
+    // location.pathname/navigate are stable here and re-running on them would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state])
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
@@ -71,16 +80,22 @@ export default function ChildToday() {
                 </div>
                 {item.done ? (
                   <span className="flex size-7 items-center justify-center rounded-full bg-remine-blue text-white">✓</span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => sendCheer(item.id)}
-                    disabled={cheered}
-                    className="h-[34px] shrink-0 rounded-xl px-3.5 text-[13px] font-semibold disabled:text-remine-muted"
-                    style={{ backgroundColor: cheered ? COLORS.surface : COLORS.highlight, color: cheered ? undefined : COLORS.dark }}
+                ) : cheered ? (
+                  <span
+                    className="flex h-[34px] shrink-0 items-center justify-center rounded-xl px-3.5 text-[13px] font-semibold text-remine-muted"
+                    style={{ backgroundColor: COLORS.surface }}
                   >
-                    {cheered ? '보냈어요 ✓' : '응원 보내기'}
-                  </button>
+                    보냈어요 ✓
+                  </span>
+                ) : (
+                  <Link
+                    to={`/child/today/cheer/${item.id}`}
+                    state={{ backgroundLocation: location }}
+                    className="flex h-[34px] shrink-0 items-center justify-center rounded-xl px-3.5 text-[13px] font-semibold text-remine-dark"
+                    style={{ backgroundColor: COLORS.highlight }}
+                  >
+                    응원 보내기
+                  </Link>
                 )}
               </div>
             )
