@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import BottomSheet from '@/components/BottomSheet'
 import { sendMessage } from '@/api/message'
 import { COLORS } from '@/theme'
+import sendIcon from '@/assets/icons/send.svg'
 
 const QUICK_REPLIES: Record<string, string[]> = {
   breakfast: ['엄마 아침은 드셨어요?', '밥 챙겨 드세요~ 건강이 최우선이에요!', '오늘 뭐 드실 거예요?'],
@@ -18,6 +19,7 @@ export default function CheerMessage() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [customText, setCustomText] = useState('')
   const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const finalText = customText.trim() || (selectedIndex !== null ? quickReplies[selectedIndex] : '')
@@ -39,11 +41,34 @@ export default function CheerMessage() {
     setError(null)
     try {
       await sendMessage(finalText)
-      navigate('/child/today', { replace: true, state: { cheeredItemId: itemType } })
+      setSent(true)
     } catch {
       setError('메시지를 보내지 못했어요. 잠시 후 다시 시도해 주세요.')
       setSending(false)
     }
+  }
+
+  const confirm = () => {
+    navigate('/child/today', { replace: true, state: { cheeredItemId: itemType } })
+  }
+
+  if (sent) {
+    return (
+      <BottomSheet onDismiss={confirm}>
+        <div className="flex flex-col items-center gap-1 pb-2 pt-6 text-center">
+          <img src={sendIcon} alt="" className="mb-4 size-[50px]" />
+          <h1 className="text-[20px] font-semibold text-remine-nearBlack">응원을 보냈어요!</h1>
+          <p className="text-[14px] text-remine-subtle">어머니 앱에 알림이 전송되었어요.</p>
+        </div>
+        <button
+          type="button"
+          onClick={confirm}
+          className="h-[56px] rounded-2xl bg-remine-nearBlack text-[18px] font-semibold text-white"
+        >
+          확인
+        </button>
+      </BottomSheet>
+    )
   }
 
   return (
