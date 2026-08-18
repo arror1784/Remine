@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import { getPairedProfile } from '@/api/family'
@@ -42,6 +42,7 @@ export default function FamilyMessage({ role, accentColor }: FamilyMessageProps)
   const [draft, setDraft] = useState('')
 
   const myUserId = useAuthStore((s) => s.sessions[s.activeRole]?.userId)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -82,6 +83,12 @@ export default function FamilyMessage({ role, accentColor }: FamilyMessageProps)
     }, 4000)
     return () => clearInterval(interval)
   }, [paired])
+
+  // Keep the latest message in view — on first load, on every poll tick that
+  // brings new messages, and after sending one ourselves.
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ block: 'end' })
+  }, [messages])
 
   const send = async (text: string, quickReplyKey?: string) => {
     if (!text.trim()) return
@@ -210,6 +217,7 @@ export default function FamilyMessage({ role, accentColor }: FamilyMessageProps)
           })}
 
         {!loading && failed && paired && <p className="text-center text-[14px] text-remine-muted">불러오지 못했어요</p>}
+        <div ref={messagesEndRef} />
       </div>
     </Screen>
   )
