@@ -12,13 +12,16 @@ import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
 import com.remine.memory.application.port.inbound.GetTodayQuizQuery
 import com.remine.memory.application.port.inbound.SubmitMemoryQuizAttemptCommand
 import com.remine.memory.application.port.inbound.UploadMemoryPhotoCommand
+import com.remine.memory.application.port.inbound.UploadMemoryPhotoImageCommand
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 import javax.validation.Valid
 
@@ -26,6 +29,7 @@ import javax.validation.Valid
 @RequestMapping("/api/v1/memories")
 class MemoryController(
     private val uploadMemoryPhotoCommand: UploadMemoryPhotoCommand,
+    private val uploadMemoryPhotoImageCommand: UploadMemoryPhotoImageCommand,
     private val getMemoryGalleryQuery: GetMemoryGalleryQuery,
     private val getMemoryStatsQuery: GetMemoryStatsQuery,
     private val createMemoryQuizCommand: CreateMemoryQuizCommand,
@@ -52,6 +56,26 @@ class MemoryController(
             ),
         )
         return ApiResponse.ok(MemoryPhotoResponse.from(result.entity))
+    }
+
+    /**
+     * Stores the raw image file and hands back its URL; the caller then passes that URL as
+     * `photoUrl` in the [uploadMemoryPhoto] call. Kept separate so the image bytes never have
+     * to round-trip through the memory-photo JSON payload.
+     */
+    @PostMapping("/photo-image")
+    fun uploadMemoryPhotoImage(
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+        @RequestParam("file") file: MultipartFile,
+    ): ApiResponse<UploadMemoryPhotoImageResponse> {
+        val result = uploadMemoryPhotoImageCommand.handle(
+            UploadMemoryPhotoImageCommand.In(
+                bytes = file.bytes,
+                originalFilename = file.originalFilename ?: "photo",
+                contentType = file.contentType ?: "application/octet-stream",
+            ),
+        )
+        return ApiResponse.ok(UploadMemoryPhotoImageResponse(url = result.url))
     }
 
     @GetMapping

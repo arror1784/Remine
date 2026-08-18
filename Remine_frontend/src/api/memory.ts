@@ -70,6 +70,13 @@ export async function uploadPhoto(payload: {
   return unwrap(response.data)
 }
 
+export async function uploadPhotoImage(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await http.post<ApiEnvelope<{ url: string }>>('/api/v1/memories/photo-image', formData)
+  return unwrap(response.data).url
+}
+
 export async function generateQuizQuestions(photoId: string): Promise<DraftQuestion[]> {
   const response = await http.post<ApiEnvelope<DraftQuestion[]>>(
     `/api/v1/memories/${photoId}/quiz/generate-questions`

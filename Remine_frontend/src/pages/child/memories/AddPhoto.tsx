@@ -1,31 +1,46 @@
-// 디자인 검토 전 — 기존 패턴 재사용한 임시 UI
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BottomSheet from '@/components/BottomSheet'
-import { generateQuizQuestions, uploadPhoto } from '@/api/memory'
-
-// 실제 파일 업로드/스토리지가 아직 없어서, public/assets/에 고정 배치해 둔 샘플 사진 중
-// 하나를 골라 그 경로를 photoUrl로 보낸다. 동작하지 않는 가짜 file input 대신 둔 임시
-// 장치. Vite가 번들해서 해시를 붙이는 src/assets/ import를 쓰면 안 된다 — 그 경로는
-// 프론트엔드 실행 방식(dev 서버 vs 빌드)에 따라 달라지고, 백엔드에 저장한 뒤 나중에
-// 다시 불러올 때는 그 경로가 더 이상 유효하지 않다. public/ 밑의 고정 경로라야
-// 언제 다시 조회하든 항상 같은 URL로 서빙된다.
-const SAMPLE_PHOTOS = [
-  { src: '/assets/family-trip.png', label: '가족 여행' },
-  { src: '/assets/birthday-cake.png', label: '생신' },
-  { src: '/assets/grandchild-walk.png', label: '손주와 산책' },
-  { src: '/assets/anniversary.jpg', label: '기념일' },
-  { src: '/assets/grandchild.png', label: '손주' },
-  { src: '/assets/sokcho-trip.png', label: '속초 여행' },
-]
+import { generateQuizQuestions, uploadPhoto, uploadPhotoImage } from '@/api/memory'
+import addAPhotoIcon from '@/assets/icons/add-a-photo.svg'
 
 export default function AddMemoryPhoto() {
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [memoryLabel, setMemoryLabel] = useState('')
   const [photoUrl, setPhotoUrl] = useState('')
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [imageUploading, setImageUploading] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
+
+  const handleFileSelected = async (file: File | undefined) => {
+    if (!file) return
+    setImageError(null)
+    setPhotoUrl('')
+    const objectUrl = URL.createObjectURL(file)
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return objectUrl
+    })
+
+    setImageUploading(true)
+    try {
+      setPhotoUrl(await uploadPhotoImage(file))
+    } catch {
+      setImageError('사진을 올리지 못했어요. 다시 선택해 주세요.')
+    } finally {
+      setImageUploading(false)
+    }
+  }
 
   const handleSubmit = async () => {
     setSubmitting(true)
@@ -55,54 +70,59 @@ export default function AddMemoryPhoto() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="flex size-9 items-center justify-center rounded-full bg-remine-border text-remine-subtle"
+          className="flex size-8 items-center justify-center rounded-full bg-remine-surface text-[16px] text-remine-subtle"
         >
           ✕
         </button>
       </div>
 
       <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-2">
-          <label className="text-[14px] text-remine-dark">사진을 골라주세요</label>
-          <div className="no-scrollbar -mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1">
-            {SAMPLE_PHOTOS.map((sample) => (
-              <button
-                key={sample.src}
-                type="button"
-                onClick={() => setPhotoUrl(sample.src)}
-                className={`relative size-20 shrink-0 overflow-hidden rounded-2xl border-2 ${
-                  photoUrl === sample.src ? 'border-remine-blue' : 'border-remine-border'
-                }`}
-              >
-                <img src={sample.src} alt={sample.label} className="size-full object-cover" />
-                {photoUrl === sample.src && (
-                  <span className="absolute bottom-1 right-1 flex size-5 items-center justify-center rounded-full bg-remine-blue text-[11px] text-white">
-                    ✓
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-          <p className="text-[13px] text-remine-subtle">어머니 퀴즈에 자동으로 활용돼요!</p>
-        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => void handleFileSelected(e.target.files?.[0])}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="relative flex h-[140px] flex-col items-center justify-center gap-[15px] overflow-hidden rounded-2xl border-[1.5px] border-dashed border-remine-pink bg-remine-highlight px-4 py-3"
+        >
+          {previewUrl ? (
+            <>
+              <img src={previewUrl} alt="선택한 사진" className="absolute inset-0 size-full object-cover" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40 text-white">
+                <span className="text-[14px] font-semibold">{imageUploading ? '올리는 중...' : '다시 선택하기'}</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <img src={addAPhotoIcon} alt="" className="size-6" />
+              <span className="text-[14px] font-semibold text-remine-dark">사진 선택하기</span>
+              <span className="text-[12px] font-medium text-remine-muted">어머니 퀴즈에 자동으로 활용돼요!</span>
+            </>
+          )}
+        </button>
+        {imageError && <p className="-mt-3 text-[13px] text-remine-pink">{imageError}</p>}
 
         <div className="flex flex-col gap-2">
-          <label className="text-[14px] text-remine-dark">어떤 추억인가요?</label>
+          <label className="text-[13px] font-semibold text-remine-subtle">어떤 추억인가요?</label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="예) 속초 여행, 첫 손주 돌잔치..."
-            className="h-14 rounded-2xl border border-remine-border bg-remine-surfaceSoft px-4 text-[16px] placeholder:text-remine-muted focus:outline-none"
+            className="h-14 rounded-2xl bg-remine-surfaceSoft px-4 text-[14px] placeholder:text-remine-borderSoft focus:outline-none"
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-[14px] text-remine-dark">언제의 사진인가요?</label>
+          <label className="text-[13px] font-semibold text-remine-subtle">언제의 사진인가요?</label>
           <input
             value={memoryLabel}
             onChange={(e) => setMemoryLabel(e.target.value)}
-            placeholder="예) 2022년 여름 (50자 이내)"
-            className="h-14 rounded-2xl border border-remine-border bg-remine-surfaceSoft px-4 text-[16px] placeholder:text-remine-muted focus:outline-none"
+            placeholder="예) 2022년 여름"
+            className="h-[47px] rounded-2xl border border-remine-border bg-remine-surfaceSoft px-4 text-[15px] placeholder:text-remine-borderSoft focus:outline-none"
           />
         </div>
 
@@ -111,8 +131,8 @@ export default function AddMemoryPhoto() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={!title || !memoryLabel || !photoUrl || submitting}
-          className="h-[52px] rounded-2xl bg-remine-blue text-[16px] font-semibold text-white disabled:opacity-40"
+          disabled={!title || !memoryLabel || !photoUrl || imageUploading || submitting}
+          className="h-[56px] rounded-2xl bg-remine-blue text-[18px] font-semibold text-white disabled:opacity-40"
         >
           {submitting ? '전달 중...' : '어머니께 전달하기'}
         </button>

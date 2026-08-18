@@ -18,3 +18,6 @@ application-local.yml
 
 # Local H2 file-mode database (dev only — prod uses Postgres)
 data/
+
+# Local-disk uploaded images (dev only — no cloud storage wired up yet)
+uploads/

@@ -12,12 +12,14 @@ import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
 import com.remine.memory.application.port.inbound.GetTodayQuizQuery
 import com.remine.memory.application.port.inbound.SubmitMemoryQuizAttemptCommand
 import com.remine.memory.application.port.inbound.UploadMemoryPhotoCommand
+import com.remine.memory.application.port.inbound.UploadMemoryPhotoImageCommand
 import com.remine.memory.domain.MemoryPhoto
 import com.remine.memory.domain.MemoryQuizDraftQuestion
 import com.remine.memory.domain.MemoryQuizQuestion
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.springframework.mock.web.MockMultipartFile
 import java.util.UUID
 
 class MemoryControllerTest {
@@ -68,6 +70,27 @@ class MemoryControllerTest {
         assertEquals(childId, capturedIn?.uploadedByUserId)
         assertEquals(parentId, capturedIn?.ownerUserId)
         assertEquals("Trip", response.data?.title)
+        assertNull(response.error)
+    }
+
+    @Test
+    fun `uploadMemoryPhotoImage forwards the file bytes and returns the stored URL`() {
+        var capturedIn: UploadMemoryPhotoImageCommand.In? = null
+        val uploadImageCommand = object : UploadMemoryPhotoImageCommand {
+            override fun handle(command: UploadMemoryPhotoImageCommand.In): UploadMemoryPhotoImageCommand.Out {
+                capturedIn = command
+                return UploadMemoryPhotoImageCommand.Out(url = "http://localhost:8080/uploads/memory-photos/new.png")
+            }
+        }
+        val controller = createController(uploadImageCommand = uploadImageCommand)
+        val file = MockMultipartFile("file", "cherry-blossom.png", "image/png", byteArrayOf(1, 2, 3))
+
+        val response = controller.uploadMemoryPhotoImage(principal = childPrincipal, file = file)
+
+        assertEquals("cherry-blossom.png", capturedIn?.originalFilename)
+        assertEquals("image/png", capturedIn?.contentType)
+        assertEquals(3, capturedIn?.bytes?.size)
+        assertEquals("http://localhost:8080/uploads/memory-photos/new.png", response.data?.url)
         assertNull(response.error)
     }
 
@@ -220,6 +243,7 @@ class MemoryControllerTest {
 
     private fun createController(
         uploadCommand: UploadMemoryPhotoCommand = mockUploadCommand(),
+        uploadImageCommand: UploadMemoryPhotoImageCommand = mockUploadImageCommand(),
         galleryQuery: GetMemoryGalleryQuery = mockGetGalleryQuery(),
         statsQuery: GetMemoryStatsQuery = mockGetStatsQuery(),
         createQuizCommand: CreateMemoryQuizCommand = mockCreateQuizCommand(),
@@ -231,6 +255,7 @@ class MemoryControllerTest {
         submitCommand: SubmitMemoryQuizAttemptCommand = mockSubmitAttemptCommand(),
     ) = MemoryController(
         uploadMemoryPhotoCommand = uploadCommand,
+        uploadMemoryPhotoImageCommand = uploadImageCommand,
         getMemoryGalleryQuery = galleryQuery,
         getMemoryStatsQuery = statsQuery,
         createMemoryQuizCommand = createQuizCommand,
@@ -241,6 +266,11 @@ class MemoryControllerTest {
         getTodayQuizQuery = todayQuery,
         submitMemoryQuizAttemptCommand = submitCommand,
     )
+
+    private fun mockUploadImageCommand() = object : UploadMemoryPhotoImageCommand {
+        override fun handle(command: UploadMemoryPhotoImageCommand.In): UploadMemoryPhotoImageCommand.Out =
+            UploadMemoryPhotoImageCommand.Out(url = "https://example.com/uploads/memory-photos/stub.png")
+    }
 
     private fun mockUploadCommand() = object : UploadMemoryPhotoCommand {
         override fun handle(command: UploadMemoryPhotoCommand.In): UploadMemoryPhotoCommand.Out =

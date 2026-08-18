@@ -44,6 +44,9 @@ class SecurityConfig(
                     .antMatchers("/api/v1/auth/**").permitAll()
                     .antMatchers("/api/v1/users/signup").permitAll()
                     .antMatchers("/h2-console/**").permitAll()
+                    // Uploaded memory-photo images are rendered via plain <img> tags, which
+                    // can't attach an Authorization header — must stay publicly readable.
+                    .antMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                     .antMatchers("/actuator/health").permitAll()
                     .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .anyRequest().authenticated()

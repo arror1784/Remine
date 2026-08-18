@@ -36,6 +36,16 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 8MB
+
+# Local-disk image storage for memory-photo uploads (see LocalDiskImageStorageAdapter). No cloud
+# storage is wired up yet — swap the adapter, not these keys, when one is.
+storage:
+  upload-dir: ${STORAGE_UPLOAD_DIR:./uploads}
+  public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:8080}
 
 jwt:
   secret: ${JWT_SECRET:dev-only-secret-key-change-in-production-0123456789}

@@ -10,6 +10,8 @@ import com.remine.memory.application.port.inbound.GetMemoryStatsQuery
 import com.remine.memory.application.port.inbound.GetTodayQuizQuery
 import com.remine.memory.application.port.inbound.SubmitMemoryQuizAttemptCommand
 import com.remine.memory.application.port.inbound.UploadMemoryPhotoCommand
+import com.remine.memory.application.port.inbound.UploadMemoryPhotoImageCommand
+import com.remine.memory.application.port.outbound.ImageStoragePort
 import com.remine.memory.application.port.outbound.MemoryPhotoRepositoryPort
 import com.remine.memory.application.port.outbound.MemoryQuizAttemptRepositoryPort
 import com.remine.memory.application.port.outbound.MemoryQuizQuestionRepositoryPort
@@ -85,6 +87,15 @@ class FakeMemoryQuizAttemptRepository : MemoryQuizAttemptRepositoryPort {
         attempts.filter { it.memoryPhotoId in memoryPhotoIds }.map { it.memoryPhotoId }.toSet()
 }
 
+class FakeImageStoragePort : ImageStoragePort {
+    var lastStored: Triple<ByteArray, String, String>? = null
+
+    override fun store(bytes: ByteArray, originalFilename: String, contentType: String): String {
+        lastStored = Triple(bytes, originalFilename, contentType)
+        return "https://example.com/uploads/memory-photos/$originalFilename"
+    }
+}
+
 class MemoryServicesTest {
 
     private lateinit var photoRepository: FakeMemoryPhotoRepository
@@ -155,6 +166,68 @@ class MemoryServicesTest {
         val result = service.handle(GetMemoryGalleryQuery.In(ownerUserId = owner))
 
         assertEquals(setOf(attemptedPhoto.id), result.attemptedPhotoIds)
+    }
+
+    @Test
+    fun `UploadMemoryPhotoImageService stores the bytes and returns the resulting URL`() {
+        val storage = FakeImageStoragePort()
+        val service = UploadMemoryPhotoImageService(storage)
+
+        val result = service.handle(
+            UploadMemoryPhotoImageCommand.In(
+                bytes = byteArrayOf(1, 2, 3),
+                originalFilename = "cherry-blossom.png",
+                contentType = "image/png",
+            ),
+        )
+
+        assertEquals("https://example.com/uploads/memory-photos/cherry-blossom.png", result.url)
+        assertEquals("cherry-blossom.png", storage.lastStored?.second)
+    }
+
+    @Test
+    fun `UploadMemoryPhotoImageService rejects a non-image content type`() {
+        val service = UploadMemoryPhotoImageService(FakeImageStoragePort())
+
+        assertThrows<InvalidRequestException> {
+            service.handle(
+                UploadMemoryPhotoImageCommand.In(
+                    bytes = byteArrayOf(1, 2, 3),
+                    originalFilename = "notes.pdf",
+                    contentType = "application/pdf",
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `UploadMemoryPhotoImageService rejects an empty file`() {
+        val service = UploadMemoryPhotoImageService(FakeImageStoragePort())
+
+        assertThrows<InvalidRequestException> {
+            service.handle(
+                UploadMemoryPhotoImageCommand.In(
+                    bytes = ByteArray(0),
+                    originalFilename = "empty.png",
+                    contentType = "image/png",
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `UploadMemoryPhotoImageService rejects a file over the size limit`() {
+        val service = UploadMemoryPhotoImageService(FakeImageStoragePort())
+
+        assertThrows<InvalidRequestException> {
+            service.handle(
+                UploadMemoryPhotoImageCommand.In(
+                    bytes = ByteArray(6 * 1024 * 1024),
+                    originalFilename = "huge.png",
+                    contentType = "image/png",
+                ),
+            )
+        }
     }
 
     @Test
