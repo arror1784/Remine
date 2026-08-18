@@ -1,10 +1,13 @@
 package com.remine.activity.application.service
 
 import com.remine.activity.application.port.inbound.GetChecklistQuery
+import com.remine.activity.application.port.inbound.GetCheerMessageSuggestionsQuery
 import com.remine.activity.application.port.inbound.SendCheerCommand
 import com.remine.activity.application.port.inbound.ToggleChecklistItemCommand
 import com.remine.activity.application.port.outbound.ActivityCheerRepositoryPort
 import com.remine.activity.application.port.outbound.ActivityChecklistItemRepositoryPort
+import com.remine.activity.application.port.outbound.CheerMessageGeneratorPort
+import com.remine.activity.application.port.outbound.DailyActivityStatRepositoryPort
 import com.remine.activity.domain.ActivityCheer
 import com.remine.activity.domain.ActivityChecklistItem
 import com.remine.common.domain.exception.EntityNotFoundException
@@ -21,9 +24,12 @@ import java.util.UUID
 class ActivityChecklistService(
     private val checklistItemRepository: ActivityChecklistItemRepositoryPort,
     private val cheerRepository: ActivityCheerRepositoryPort,
+    private val dailyActivityStatRepository: DailyActivityStatRepositoryPort,
+    private val cheerMessageGenerator: CheerMessageGeneratorPort,
 ) : ToggleChecklistItemCommand,
     SendCheerCommand,
-    GetChecklistQuery {
+    GetChecklistQuery,
+    GetCheerMessageSuggestionsQuery {
 
     override fun handle(command: ToggleChecklistItemCommand.In): ToggleChecklistItemCommand.Out {
         val item = checklistItemRepository.findById(command.checklistItemId)
@@ -82,6 +88,26 @@ class ActivityChecklistService(
         }
         val saved = checklistItemRepository.saveAll(itemsToCreate)
         return GetChecklistQuery.Out(items = saved)
+    }
+
+    override fun handle(query: GetCheerMessageSuggestionsQuery.In): GetCheerMessageSuggestionsQuery.Out {
+        val item = checklistItemRepository.findById(query.checklistItemId)
+            ?: throw EntityNotFoundException("Checklist item not found: ${query.checklistItemId}")
+        requireOwnPair(item, query.requestedByParentUserId)
+
+        val stat = dailyActivityStatRepository.findByUserIdAndStatDate(item.userId, item.statDate)
+
+        fun calcPercent(value: Int, goal: Int): Int = if (goal > 0) minOf(100, (value * 100) / goal) else 0
+
+        val suggestions = cheerMessageGenerator.generateSuggestions(
+            itemType = item.type,
+            stat = stat,
+            sleepPercent = stat?.let { calcPercent(it.sleepMinutes, it.sleepGoalMinutes) } ?: 0,
+            stepsPercent = stat?.let { calcPercent(it.steps, it.stepsGoal) } ?: 0,
+            outingPercent = stat?.let { calcPercent(it.outingCount, it.outingGoal) } ?: 0,
+            socialPercent = stat?.let { calcPercent(it.socialContactCount, it.socialGoal) } ?: 0,
+        )
+        return GetCheerMessageSuggestionsQuery.Out(suggestions = suggestions)
     }
 
     private fun requireOwnPair(item: ActivityChecklistItem, requestedByParentUserId: UUID) {

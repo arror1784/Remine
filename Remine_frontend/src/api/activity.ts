@@ -73,3 +73,8 @@ export async function getTimeline(): Promise<TimelineEvent[]> {
   const response = await http.get<ApiEnvelope<TimelineEvent[]>>('/api/v1/activities/timeline')
   return unwrap(response.data)
 }
+
+export async function getCheerMessageSuggestions(checklistItemId: string): Promise<string[]> {
+  const response = await http.get<ApiEnvelope<string[]>>(`/api/v1/activities/checklist/${checklistItemId}/cheer-message-suggestions`)
+  return unwrap(response.data)
+}

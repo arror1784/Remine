@@ -1,5 +1,6 @@
 package com.remine.activity.application.service
 
+import com.remine.activity.application.port.inbound.GetCheerMessageSuggestionsQuery
 import com.remine.activity.application.port.inbound.GetChecklistQuery
 import com.remine.activity.application.port.inbound.GetTodaySummaryQuery
 import com.remine.activity.application.port.inbound.GetWeeklyPatternQuery
@@ -10,6 +11,7 @@ import com.remine.activity.application.port.inbound.ToggleChecklistItemCommand
 import com.remine.activity.application.port.inbound.UpdateDailyActivityCommand
 import com.remine.activity.application.port.outbound.ActivityCheerRepositoryPort
 import com.remine.activity.application.port.outbound.ActivityChecklistItemRepositoryPort
+import com.remine.activity.application.port.outbound.CheerMessageGeneratorPort
 import com.remine.activity.application.port.outbound.DailyActivityRecommendationRepositoryPort
 import com.remine.activity.application.port.outbound.DailyActivityStatRepositoryPort
 import com.remine.activity.domain.ActivityCheer
@@ -82,6 +84,23 @@ class ActivityServiceTest {
 
         override fun deleteByUserIdAndStatDate(userId: UUID, statDate: LocalDate) {
             store.values.removeIf { it.userId == userId && it.statDate == statDate }
+        }
+    }
+
+    private class MockCheerMessageGeneratorPort : CheerMessageGeneratorPort {
+        var lastItemType: String? = null
+        var returnSuggestions = listOf("메시지1", "메시지2", "메시지3")
+
+        override fun generateSuggestions(
+            itemType: String,
+            stat: DailyActivityStat?,
+            sleepPercent: Int,
+            stepsPercent: Int,
+            outingPercent: Int,
+            socialPercent: Int,
+        ): List<String> {
+            lastItemType = itemType
+            return returnSuggestions
         }
     }
 
@@ -317,7 +336,7 @@ class ActivityServiceTest {
     fun `checklist find-or-create creates 4 items, toggles done, cheers idempotently`() {
         val checklistRepo = InMemoryChecklistItemRepository()
         val cheerRepo = InMemoryCheerRepository()
-        val service = ActivityChecklistService(checklistRepo, cheerRepo)
+        val service = ActivityChecklistService(checklistRepo, cheerRepo, InMemoryDailyActivityStatRepository(), MockCheerMessageGeneratorPort())
         val userId = UUID.randomUUID()
         val senderId = UUID.randomUUID()
         val today = LocalDate.now()
@@ -339,10 +358,57 @@ class ActivityServiceTest {
     }
 
     @Test
+    fun `cheer message suggestions pass the checklist item's type and stat percents to the AI generator`() {
+        val checklistRepo = InMemoryChecklistItemRepository()
+        val cheerRepo = InMemoryCheerRepository()
+        val statRepo = InMemoryDailyActivityStatRepository()
+        val generator = MockCheerMessageGeneratorPort()
+        val service = ActivityChecklistService(checklistRepo, cheerRepo, statRepo, generator)
+        val userId = UUID.randomUUID()
+        val today = LocalDate.now()
+
+        val checklist = service.handle(GetChecklistQuery.In(userId, today))
+        val walkItem = checklist.items.first { it.type == "WALK" }
+        statRepo.save(
+            DailyActivityStat(
+                userId = userId,
+                statDate = today,
+                sleepMinutes = 480,
+                steps = 4000,
+                outingCount = 0,
+                socialContactCount = 1,
+                sleepGoalMinutes = 480,
+                stepsGoal = 8000,
+                outingGoal = 1,
+                socialGoal = 1,
+            ),
+        )
+
+        val out = service.handle(GetCheerMessageSuggestionsQuery.In(walkItem.id, userId))
+
+        assertEquals(listOf("메시지1", "메시지2", "메시지3"), out.suggestions)
+        assertEquals("WALK", generator.lastItemType)
+    }
+
+    @Test
+    fun `cheer message suggestions are rejected for another family's checklist item`() {
+        val checklistRepo = InMemoryChecklistItemRepository()
+        val cheerRepo = InMemoryCheerRepository()
+        val service = ActivityChecklistService(checklistRepo, cheerRepo, InMemoryDailyActivityStatRepository(), MockCheerMessageGeneratorPort())
+        val parentId = UUID.randomUUID()
+        val outsiderId = UUID.randomUUID()
+        val item = service.handle(GetChecklistQuery.In(parentId, LocalDate.now())).items.first()
+
+        assertThrows<ForbiddenException> {
+            service.handle(GetCheerMessageSuggestionsQuery.In(item.id, outsiderId))
+        }
+    }
+
+    @Test
     fun `checklist toggle and cheer are rejected for another family's checklist item`() {
         val checklistRepo = InMemoryChecklistItemRepository()
         val cheerRepo = InMemoryCheerRepository()
-        val service = ActivityChecklistService(checklistRepo, cheerRepo)
+        val service = ActivityChecklistService(checklistRepo, cheerRepo, InMemoryDailyActivityStatRepository(), MockCheerMessageGeneratorPort())
         val parentId = UUID.randomUUID()
         val outsiderId = UUID.randomUUID()
 

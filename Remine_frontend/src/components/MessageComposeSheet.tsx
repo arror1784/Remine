@@ -8,11 +8,18 @@ import sendIcon from '@/assets/icons/send.svg'
 type MessageComposeSheetProps = {
   title: string
   quickReplies: string[]
+  quickRepliesLoading?: boolean
   successTitle: string
   onSent: () => void
 }
 
-export default function MessageComposeSheet({ title, quickReplies, successTitle, onSent }: MessageComposeSheetProps) {
+export default function MessageComposeSheet({
+  title,
+  quickReplies,
+  quickRepliesLoading = false,
+  successTitle,
+  onSent,
+}: MessageComposeSheetProps) {
   const navigate = useNavigate()
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
@@ -80,23 +87,29 @@ export default function MessageComposeSheet({ title, quickReplies, successTitle,
       </div>
 
       <div className="flex flex-col gap-2">
-        {quickReplies.map((reply, index) => {
-          const selected = selectedIndex === index
-          return (
-            <button
-              key={reply}
-              type="button"
-              onClick={() => selectQuickReply(index)}
-              className="flex w-full flex-col items-start rounded-2xl border px-4 py-3 text-left"
-              style={{
-                backgroundColor: selected ? COLORS.highlight : COLORS.surfaceSoft,
-                borderColor: selected ? COLORS.pink : 'transparent',
-              }}
-            >
-              <span className="text-[14px] text-remine-dark">{reply}</span>
-            </button>
-          )
-        })}
+        {quickRepliesLoading &&
+          [0, 1, 2].map((i) => (
+            <div key={i} className="h-[47px] w-full animate-pulse rounded-2xl" style={{ backgroundColor: COLORS.surfaceSoft }} />
+          ))}
+
+        {!quickRepliesLoading &&
+          quickReplies.map((reply, index) => {
+            const selected = selectedIndex === index
+            return (
+              <button
+                key={reply}
+                type="button"
+                onClick={() => selectQuickReply(index)}
+                className="flex w-full flex-col items-start rounded-2xl border px-4 py-3 text-left"
+                style={{
+                  backgroundColor: selected ? COLORS.highlight : COLORS.surfaceSoft,
+                  borderColor: selected ? COLORS.pink : 'transparent',
+                }}
+              >
+                <span className="text-[14px] text-remine-dark">{reply}</span>
+              </button>
+            )
+          })}
 
         <textarea
           value={customText}

@@ -1,5 +1,6 @@
 package com.remine.activity.adapter.presentation.web
 
+import com.remine.activity.application.port.inbound.GetCheerMessageSuggestionsQuery
 import com.remine.activity.application.port.inbound.GetChecklistQuery
 import com.remine.activity.application.port.inbound.GetDailyActivityRecommendationQuery
 import com.remine.activity.application.port.inbound.GetTimelineQuery
@@ -41,6 +42,7 @@ class ActivityController(
     private val getChecklistQuery: GetChecklistQuery,
     private val getTimelineQuery: GetTimelineQuery,
     private val getDailyActivityRecommendationQuery: GetDailyActivityRecommendationQuery,
+    private val getCheerMessageSuggestionsQuery: GetCheerMessageSuggestionsQuery,
 ) {
 
     @PostMapping
@@ -194,6 +196,25 @@ class ActivityController(
             )
         )
         return ApiResponse.ok(out.entity?.let { ActivityCheerResponse.from(it) })
+    }
+
+    /**
+     * AI-generated cheer-message suggestions tailored to this checklist item's type and the
+     * parent's actual activity data for that date — used to populate the quick-reply picker in
+     * the cheer-message sheet instead of static canned text.
+     */
+    @GetMapping("/checklist/{id}/cheer-message-suggestions")
+    fun getCheerMessageSuggestions(
+        @AuthenticationPrincipal principal: RemineUserPrincipal,
+        @PathVariable id: UUID,
+    ): ApiResponse<List<String>> {
+        val out = getCheerMessageSuggestionsQuery.handle(
+            GetCheerMessageSuggestionsQuery.In(
+                checklistItemId = id,
+                requestedByParentUserId = principal.parentUserId(),
+            )
+        )
+        return ApiResponse.ok(out.suggestions)
     }
 
     @GetMapping("/timeline")

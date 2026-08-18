@@ -76,7 +76,7 @@ function App() {
 
           <Route path="/child/home" element={<ChildHome />} />
           <Route path="/child/today" element={<ChildToday />} />
-          <Route path="/child/today/cheer/:itemType" element={<CheerMessage />} />
+          <Route path="/child/today/cheer/:checklistItemId" element={<CheerMessage />} />
           <Route path="/child/home/message" element={<SendHomeMessage />} />
           <Route path="/child/mypage" element={<ChildMyPage />} />
           <Route path="/child/notifications" element={<FamilyNotifications role="child" accentColor={COLORS.blue} />} />
@@ -98,7 +98,7 @@ function App() {
             <Route path="/parent/reminders/quiz" element={<QuizReminder />} />
             <Route path="/parent/notifications" element={<FamilyNotifications role="parent" accentColor={COLORS.pink} />} />
             <Route path="/child/memories/add" element={<AddMemoryPhoto />} />
-            <Route path="/child/today/cheer/:itemType" element={<CheerMessage />} />
+            <Route path="/child/today/cheer/:checklistItemId" element={<CheerMessage />} />
             <Route path="/child/home/message" element={<SendHomeMessage />} />
             <Route path="/child/notifications" element={<FamilyNotifications role="child" accentColor={COLORS.blue} />} />
           </Routes>

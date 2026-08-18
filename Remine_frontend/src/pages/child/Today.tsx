@@ -14,11 +14,11 @@ import {
 } from '@/api/activity'
 import { COLORS } from '@/theme'
 
-const ITEM_META: Record<ChecklistItemType, { emoji: string; label: string; bg: string; cheerType: string | null }> = {
-  SLEEP: { emoji: '🌙', label: '수면', bg: COLORS.highlightBlue, cheerType: 'sleep' },
-  BREAKFAST: { emoji: '🍚', label: '아침식사', bg: COLORS.surfaceSoft, cheerType: 'breakfast' },
-  WALK: { emoji: '🚶', label: '산책', bg: COLORS.surfaceSoft, cheerType: 'walk' },
-  QUIZ: { emoji: '🧩', label: '퀴즈', bg: COLORS.surfaceSoft, cheerType: 'quiz' },
+const ITEM_META: Record<ChecklistItemType, { emoji: string; label: string; bg: string }> = {
+  SLEEP: { emoji: '🌙', label: '수면', bg: COLORS.highlightBlue },
+  BREAKFAST: { emoji: '🍚', label: '아침식사', bg: COLORS.surfaceSoft },
+  WALK: { emoji: '🚶', label: '산책', bg: COLORS.surfaceSoft },
+  QUIZ: { emoji: '🧩', label: '퀴즈', bg: COLORS.surfaceSoft },
 }
 
 function clockTime(iso: string) {
@@ -113,7 +113,7 @@ export default function ChildToday() {
             <h2 className="pb-1 text-[20px] font-semibold text-remine-dark">활동 체크리스트</h2>
             {checklist.map((item) => {
               const meta = ITEM_META[item.type]
-              const cheered = cheeredIds.includes(item.type.toLowerCase())
+              const cheered = cheeredIds.includes(item.id)
               return (
                 <div key={item.id} className="flex items-center gap-3.5 rounded-[20px] border border-remine-border bg-white px-5 py-4">
                   <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl text-[17px]" style={{ backgroundColor: meta.bg }}>
@@ -133,7 +133,7 @@ export default function ChildToday() {
                   </div>
                   {item.done ? (
                     <span className="flex size-7 items-center justify-center rounded-full bg-remine-blue text-white">✓</span>
-                  ) : !meta.cheerType ? null : cheered ? (
+                  ) : cheered ? (
                     <span
                       className="flex h-[34px] shrink-0 items-center justify-center rounded-xl px-3.5 text-[13px] font-semibold text-remine-muted"
                       style={{ backgroundColor: COLORS.surface }}
@@ -142,7 +142,7 @@ export default function ChildToday() {
                     </span>
                   ) : (
                     <Link
-                      to={`/child/today/cheer/${meta.cheerType}`}
+                      to={`/child/today/cheer/${item.id}`}
                       state={{ backgroundLocation: location }}
                       className="flex h-[34px] shrink-0 items-center justify-center rounded-xl px-3.5 text-[13px] font-semibold text-remine-dark"
                       style={{ backgroundColor: COLORS.highlight }}

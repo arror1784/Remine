@@ -1,5 +1,6 @@
 package com.remine.activity.adapter.presentation.web
 
+import com.remine.activity.application.port.inbound.GetCheerMessageSuggestionsQuery
 import com.remine.activity.application.port.inbound.GetChecklistQuery
 import com.remine.activity.application.port.inbound.GetDailyActivityRecommendationQuery
 import com.remine.activity.application.port.inbound.GetTimelineQuery
@@ -73,6 +74,26 @@ class ActivityControllerTest {
         assertNull(parentRes.error)
     }
 
+    @Test
+    fun `getCheerMessageSuggestions passes parentUserId and the checklist item id`() {
+        var capturedIn: GetCheerMessageSuggestionsQuery.In? = null
+        val checklistItemId = UUID.randomUUID()
+        val suggestionsQuery = object : GetCheerMessageSuggestionsQuery {
+            override fun handle(query: GetCheerMessageSuggestionsQuery.In): GetCheerMessageSuggestionsQuery.Out {
+                capturedIn = query
+                return GetCheerMessageSuggestionsQuery.Out(suggestions = listOf("메시지1", "메시지2", "메시지3"))
+            }
+        }
+
+        val controller = createController(cheerSuggestionsQuery = suggestionsQuery)
+        val response = controller.getCheerMessageSuggestions(principal = childPrincipal, id = checklistItemId)
+
+        assertEquals(checklistItemId, capturedIn?.checklistItemId)
+        assertEquals(parentId, capturedIn?.requestedByParentUserId)
+        assertEquals(listOf("메시지1", "메시지2", "메시지3"), response.data)
+        assertNull(response.error)
+    }
+
     private fun createController(
         recordCommand: RecordDailyActivityCommand = mockRecordCommand(),
         updateCommand: UpdateDailyActivityCommand = mockUpdateCommand(),
@@ -85,6 +106,7 @@ class ActivityControllerTest {
         checklistQuery: GetChecklistQuery = mockChecklistQuery(),
         timelineQuery: GetTimelineQuery = mockTimelineQuery(),
         recQuery: GetDailyActivityRecommendationQuery = mockRecQuery(),
+        cheerSuggestionsQuery: GetCheerMessageSuggestionsQuery = mockCheerSuggestionsQuery(),
     ) = ActivityController(
         recordDailyActivityCommand = recordCommand,
         updateDailyActivityCommand = updateCommand,
@@ -97,6 +119,7 @@ class ActivityControllerTest {
         getChecklistQuery = checklistQuery,
         getTimelineQuery = timelineQuery,
         getDailyActivityRecommendationQuery = recQuery,
+        getCheerMessageSuggestionsQuery = cheerSuggestionsQuery,
     )
 
     private fun mockRecordCommand() = object : RecordDailyActivityCommand {
@@ -131,5 +154,8 @@ class ActivityControllerTest {
     }
     private fun mockRecQuery() = object : GetDailyActivityRecommendationQuery {
         override fun handle(query: GetDailyActivityRecommendationQuery.In) = throw NotImplementedError()
+    }
+    private fun mockCheerSuggestionsQuery() = object : GetCheerMessageSuggestionsQuery {
+        override fun handle(query: GetCheerMessageSuggestionsQuery.In) = throw NotImplementedError()
     }
 }
