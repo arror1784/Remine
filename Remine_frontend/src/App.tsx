@@ -64,6 +64,7 @@ function App() {
           <Route path="/parent/notifications" element={<FamilyNotifications role="parent" accentColor={COLORS.pink} />} />
           <Route path="/parent/memories" element={<MemoryGallery />} />
           <Route path="/parent/memories/quiz" element={<MemoryQuiz />} />
+          <Route path="/parent/memories/:photoId/quiz" element={<MemoryQuiz />} />
           <Route path="/parent/family" element={<ParentFamily />} />
           <Route path="/parent/family/message" element={<FamilyMessage role="parent" accentColor={COLORS.pink} />} />
           <Route path="/parent/family/call" element={<FamilyCall role="parent" />} />

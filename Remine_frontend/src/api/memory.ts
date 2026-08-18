@@ -89,6 +89,11 @@ export async function getTodayQuiz(): Promise<TodayQuiz> {
   return unwrap(response.data)
 }
 
+export async function getMemoryQuiz(photoId: string): Promise<TodayQuiz> {
+  const response = await http.get<ApiEnvelope<TodayQuiz>>(`/api/v1/memories/${photoId}/quiz`)
+  return unwrap(response.data)
+}
+
 export async function submitQuizAttempt(
   photoId: string,
   answers: number[]

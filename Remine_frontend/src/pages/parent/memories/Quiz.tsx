@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Screen from '@/components/Screen'
 import BottomTabBar from '@/components/BottomTabBar'
-import { getTodayQuiz, submitQuizAttempt, type TodayQuiz } from '@/api/memory'
+import { getMemoryQuiz, getTodayQuiz, submitQuizAttempt, type TodayQuiz } from '@/api/memory'
 import { COLORS } from '@/theme'
 
 export default function MemoryQuiz() {
   const navigate = useNavigate()
+  const { photoId } = useParams<{ photoId?: string }>()
   const [quiz, setQuiz] = useState<TodayQuiz | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
@@ -18,7 +19,8 @@ export default function MemoryQuiz() {
 
   useEffect(() => {
     let cancelled = false
-    getTodayQuiz()
+    const fetchQuiz = photoId ? getMemoryQuiz(photoId) : getTodayQuiz()
+    fetchQuiz
       .then((data) => {
         if (!cancelled) setQuiz(data)
       })
@@ -31,7 +33,7 @@ export default function MemoryQuiz() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [photoId])
 
   const photo = quiz?.photo ?? null
   const questions = quiz?.questions ?? []
@@ -75,7 +77,7 @@ export default function MemoryQuiz() {
           ) : (
             <div className="flex flex-col items-center pt-6 text-center">
               <p className="mb-8 text-[16px] text-remine-muted">
-                {failed ? '불러오지 못했어요' : '오늘은 풀 수 있는 퀴즈가 없어요'}
+                {failed ? '불러오지 못했어요' : photoId ? '이 사진은 아직 퀴즈가 준비되지 않았어요' : '오늘은 풀 수 있는 퀴즈가 없어요'}
               </p>
               <button
                 type="button"
