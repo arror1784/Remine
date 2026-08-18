@@ -1,0 +1,18 @@
+# .dockerignore patterns match relative to the build context root, but Docker
+# does NOT apply them recursively into subdirectories unless prefixed with **.
+**/build/
+**/.gradle/
+**/out/
+**/*.iml
+.idea/
+
+# Local dev DB / uploads — never belong in the image.
+**/data/
+**/uploads/
+
+# Local-only override file (gitignored, sometimes contains a real OpenAI key
+# during local development) — must never reach the build context.
+**/application-local.yml
+**/application-local.yml.example
+
+.DS_Store
