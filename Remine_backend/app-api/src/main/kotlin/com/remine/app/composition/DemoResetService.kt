@@ -12,7 +12,9 @@ import com.remine.memory.application.port.outbound.MemoryQuizAttemptRepositoryPo
 import com.remine.memory.application.port.outbound.MemoryQuizDraftQuestionRepositoryPort
 import com.remine.memory.application.port.outbound.MemoryQuizQuestionRepositoryPort
 import com.remine.message.application.port.outbound.ChatMessageRepositoryPort
+import com.remine.auth.domain.Role
 import com.remine.user.application.service.DemoLoginService
+import com.remine.user.domain.DemoVariant
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -21,10 +23,11 @@ import java.time.ZoneId
 import java.util.UUID
 
 /**
- * Wipes and reseeds a "good-looking" baseline of business data for the DEMO variant's fixed
- * PARENT+CHILD pair only (see DemoLoginService.SHOW_PARENT_ID / SHOW_CHILD_ID). Never touches the
- * EVAL pair (V8__seed_demo_users.sql), or any real user — the account IDs it operates on are
- * hardcoded, not caller-supplied.
+ * Wipes and reseeds a "good-looking" baseline of business data for one demo-login variant's fixed
+ * PARENT+CHILD pair (see DemoLoginService.userIdFor). Resetting EVAL never touches DEMO's data and
+ * vice versa — the account IDs it operates on come only from DemoLoginService's hardcoded pairs,
+ * never from caller input, so this can only ever affect one of the two known seed pairs and never
+ * a real user.
  *
  * Lives in app-api rather than any single domain module because it needs outbound ports from
  * activity, memory, family, and message, which don't depend on each other.
@@ -43,9 +46,9 @@ class DemoResetService(
 ) {
 
     @Transactional
-    fun reset() {
-        val parentId = DemoLoginService.SHOW_PARENT_ID
-        val childId = DemoLoginService.SHOW_CHILD_ID
+    fun reset(variant: DemoVariant) {
+        val parentId = DemoLoginService.userIdFor(Role.PARENT, variant)
+        val childId = DemoLoginService.userIdFor(Role.CHILD, variant)
 
         wipe(parentId, childId)
         reseedBaseline(parentId)

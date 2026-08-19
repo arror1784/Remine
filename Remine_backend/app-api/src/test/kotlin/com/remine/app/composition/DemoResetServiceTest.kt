@@ -20,6 +20,7 @@ import com.remine.memory.domain.MemoryQuizQuestion
 import com.remine.message.application.port.outbound.ChatMessageRepositoryPort
 import com.remine.message.domain.ChatMessage
 import com.remine.user.application.service.DemoLoginService
+import com.remine.user.domain.DemoVariant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -69,7 +70,7 @@ class DemoResetServiceTest {
             chatMessageRepository = InMemoryChatMessageRepository(),
         )
 
-        service.reset()
+        service.reset(DemoVariant.DEMO)
 
         val demoChecklist = checklistRepo.store.values.filter { it.userId == parentId }
         assertEquals(4, demoChecklist.size)
@@ -86,6 +87,44 @@ class DemoResetServiceTest {
         // EVAL account must be completely untouched.
         assertEquals(1, checklistRepo.store.values.count { it.userId == evalParentId })
         assertEquals(1, statRepo.store.values.count { it.userId == evalParentId })
+    }
+
+    @Test
+    fun `reset(EVAL) wipes only the EVAL account, leaving DEMO's data untouched`() {
+        val checklistRepo = InMemoryChecklistItemRepository()
+        val statRepo = InMemoryDailyActivityStatRepository()
+        val timelineRepo = InMemoryTimelineEventRepository()
+
+        checklistRepo.saveAll(
+            listOf(
+                ActivityChecklistItem(userId = evalParentId, statDate = LocalDate.now().minusDays(5), type = "WALK", done = true),
+                ActivityChecklistItem(userId = parentId, statDate = LocalDate.now(), type = "WALK", done = true),
+            ),
+        )
+        statRepo.save(DailyActivityStat(userId = evalParentId, statDate = LocalDate.now().minusDays(5)))
+        statRepo.save(DailyActivityStat(userId = parentId, statDate = LocalDate.now()))
+
+        val service = DemoResetService(
+            checklistItemRepository = checklistRepo,
+            dailyActivityStatRepository = statRepo,
+            timelineEventRepository = timelineRepo,
+            memoryPhotoRepository = InMemoryMemoryPhotoRepository(),
+            memoryQuizQuestionRepository = InMemoryMemoryQuizQuestionRepository(),
+            memoryQuizDraftQuestionRepository = InMemoryMemoryQuizDraftQuestionRepository(),
+            memoryQuizAttemptRepository = InMemoryMemoryQuizAttemptRepository(),
+            familyPostRepository = InMemoryFamilyPostRepository(),
+            chatMessageRepository = InMemoryChatMessageRepository(),
+        )
+
+        service.reset(DemoVariant.EVAL)
+
+        val evalChecklist = checklistRepo.store.values.filter { it.userId == evalParentId }
+        assertEquals(4, evalChecklist.size)
+        assertTrue(evalChecklist.all { it.statDate == LocalDate.now() })
+
+        // DEMO account must be completely untouched.
+        assertEquals(1, checklistRepo.store.values.count { it.userId == parentId })
+        assertEquals(1, statRepo.store.values.count { it.userId == parentId })
     }
 
     @Test
@@ -138,7 +177,7 @@ class DemoResetServiceTest {
             chatMessageRepository = InMemoryChatMessageRepository(),
         )
 
-        service.reset()
+        service.reset(DemoVariant.DEMO)
 
         assertTrue(photoRepo.findAllByOwnerUserIdOrderByCreatedAtDesc(parentId).isEmpty())
         assertTrue(questionRepo.findAllByMemoryPhotoIdOrderBySortOrderAsc(photo.id).isEmpty())
@@ -172,7 +211,7 @@ class DemoResetServiceTest {
             chatMessageRepository = messageRepo,
         )
 
-        service.reset()
+        service.reset(DemoVariant.DEMO)
 
         assertTrue(postRepo.findFeed(setOf(parentId, childId), null, 50).isEmpty())
         assertEquals(1, postRepo.findFeed(setOf(evalParentId), null, 50).size)

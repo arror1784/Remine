@@ -38,9 +38,9 @@ export async function demoLogin(role: Role, variant: DemoVariant = 'EVAL'): Prom
 }
 
 // No-credential admin utility — see the backend's DemoResetController kdoc for why this is safe
-// (it can only ever touch the fixed DEMO variant's account pair, never EVAL or a real user).
-export async function resetDemoData(): Promise<void> {
-  await http.post('/api/v1/admin/demo/reset')
+// (it can only ever touch one of the two known seed-account pairs, never a real user).
+export async function resetDemoData(variant: DemoVariant = 'DEMO'): Promise<void> {
+  await http.post('/api/v1/admin/demo/reset', null, { params: { variant } })
 }
 
 export async function pairWithInviteCode(inviteCode: string): Promise<PairingResponse> {
