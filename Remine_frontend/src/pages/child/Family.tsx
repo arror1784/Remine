@@ -24,6 +24,7 @@ export default function ChildFamily() {
   const [failed, setFailed] = useState(false)
 
   const myUserId = useAuthStore((s) => s.sessions[s.activeRole]?.userId)
+  const childName = useAuthStore((s) => s.sessions.child?.name) ?? '자녀'
 
   useEffect(() => {
     let cancelled = false
@@ -53,7 +54,7 @@ export default function ChildFamily() {
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
-      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} />
+      <ModeBar label={`자녀 모드 — ${childName}님`} color={COLORS.blue} />
 
       <div className="flex items-center justify-between px-5 py-3.5">
         <h1 className="text-[22px] font-semibold text-remine-dark">가족</h1>

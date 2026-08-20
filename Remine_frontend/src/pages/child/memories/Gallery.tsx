@@ -4,6 +4,7 @@ import Screen from '@/components/Screen'
 import ModeBar from '@/components/ModeBar'
 import BottomTabBar from '@/components/BottomTabBar'
 import { getMemoryGallery, getMemoryStats, type MemoryPhoto, type MemoryStats } from '@/api/memory'
+import { useAuthStore } from '@/store/auth'
 import { COLORS } from '@/theme'
 
 function formatYearMonth(iso: string) {
@@ -17,6 +18,7 @@ function statusBadge(status: string) {
 
 export default function ChildMemoryGallery() {
   const location = useLocation()
+  const childName = useAuthStore((s) => s.sessions.child?.name) ?? '자녀'
   const [photos, setPhotos] = useState<MemoryPhoto[]>([])
   const [stats, setStats] = useState<MemoryStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -43,7 +45,7 @@ export default function ChildMemoryGallery() {
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
-      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} />
+      <ModeBar label={`자녀 모드 — ${childName}님`} color={COLORS.blue} />
 
       <div className="flex items-center justify-between px-5 py-3.5">
         <h1 className="text-[22px] font-semibold text-remine-dark">추억 갤러리</h1>

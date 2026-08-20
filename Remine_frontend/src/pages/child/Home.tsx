@@ -9,6 +9,7 @@ import springOuting from '@/assets/memories/family-trip.png'
 import birthdayCake from '@/assets/memories/birthday-cake.png'
 import grandchildWalk from '@/assets/memories/grandchild-walk.png'
 import { getRecommendation, getTodaySummary, type TodaySummary } from '@/api/activity'
+import { useAuthStore } from '@/store/auth'
 import { COLORS } from '@/theme'
 
 const FALLBACK_ACTIVITIES = [
@@ -58,6 +59,7 @@ const MEMORY_SHORTCUTS = [
 
 export default function ChildHome() {
   const location = useLocation()
+  const childName = useAuthStore((s) => s.sessions.child?.name) ?? '자녀'
   const unreadCount = useNotificationStore((s) => s.unreadCount)
   const refreshUnreadCount = useNotificationStore((s) => s.refreshUnreadCount)
   // Until the fetch lands (or if it fails) the card keeps its static copy so it never flashes empty.
@@ -86,7 +88,7 @@ export default function ChildHome() {
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
-      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} />
+      <ModeBar label={`자녀 모드 — ${childName}님`} color={COLORS.blue} />
 
       <div className="flex items-center justify-between px-5 py-3.5">
         <span className="text-[19px] font-semibold text-remine-dark">
@@ -111,7 +113,7 @@ export default function ChildHome() {
           <h1 className="text-[26px] font-semibold leading-[1.3] text-remine-dark">
             좋은 아침이에요,
             <br />
-            지영님 👋
+            {childName}님 👋
           </h1>
         </div>
 

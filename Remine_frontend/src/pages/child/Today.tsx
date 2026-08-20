@@ -12,6 +12,7 @@ import {
   type TimelineEvent,
   type TodaySummary,
 } from '@/api/activity'
+import { useAuthStore } from '@/store/auth'
 import { COLORS } from '@/theme'
 
 const ITEM_META: Record<ChecklistItemType, { emoji: string; label: string; bg: string }> = {
@@ -35,6 +36,7 @@ function describeItem(item: ChecklistItem, summary: TodaySummary | null) {
 export default function ChildToday() {
   const location = useLocation()
   const navigate = useNavigate()
+  const childName = useAuthStore((s) => s.sessions.child?.name) ?? '자녀'
   const [cheeredIds, setCheeredIds] = useState<string[]>([])
 
   const [checklist, setChecklist] = useState<ChecklistItem[]>([])
@@ -80,7 +82,7 @@ export default function ChildToday() {
 
   return (
     <Screen footer={<BottomTabBar role="child" accentColor={COLORS.blue} />}>
-      <ModeBar label="자녀 모드 — 지영님" color={COLORS.blue} />
+      <ModeBar label={`자녀 모드 — ${childName}님`} color={COLORS.blue} />
 
       <div className="flex items-center gap-2 px-5 py-3.5">
         <h1 className="text-[22px] font-semibold text-remine-dark">어머니의 오늘</h1>
