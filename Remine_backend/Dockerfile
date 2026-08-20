@@ -39,4 +39,4 @@ RUN apt-get update \
 COPY --from=build /src/app-api/build/libs/app-api-0.0.1-SNAPSHOT.jar /app/app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java","-Dspring.profiles.active=prod","-Duser.timezone=Asia/Seoul","-XX:MaxRAMPercentage=70","-XX:MaxMetaspaceSize=128m","-jar","/app/app.jar"]
+ENTRYPOINT ["java","-Dspring.profiles.active=prod","-Duser.timezone=Asia/Seoul","-Djava.awt.headless=true","-XX:MaxRAMPercentage=70","-XX:MaxMetaspaceSize=128m","-jar","/app/app.jar"]

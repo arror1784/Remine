@@ -68,6 +68,7 @@ class DemoResetServiceTest {
             memoryQuizAttemptRepository = InMemoryMemoryQuizAttemptRepository(),
             familyPostRepository = InMemoryFamilyPostRepository(),
             chatMessageRepository = InMemoryChatMessageRepository(),
+            imageStoragePort = FakeImageStoragePort(),
         )
 
         service.reset(DemoVariant.DEMO)
@@ -114,6 +115,7 @@ class DemoResetServiceTest {
             memoryQuizAttemptRepository = InMemoryMemoryQuizAttemptRepository(),
             familyPostRepository = InMemoryFamilyPostRepository(),
             chatMessageRepository = InMemoryChatMessageRepository(),
+            imageStoragePort = FakeImageStoragePort(),
         )
 
         service.reset(DemoVariant.EVAL)
@@ -128,7 +130,7 @@ class DemoResetServiceTest {
     }
 
     @Test
-    fun `reset wipes memory photos, quiz questions, and quiz attempts for both DEMO accounts`() {
+    fun `reset wipes stale memory photos then reseeds fresh quiz-active photos for the DEMO account only`() {
         val photoRepo = InMemoryMemoryPhotoRepository()
         val questionRepo = InMemoryMemoryQuizQuestionRepository()
         val draftQuestionRepo = InMemoryMemoryQuizDraftQuestionRepository()
@@ -175,16 +177,26 @@ class DemoResetServiceTest {
             memoryQuizAttemptRepository = attemptRepo,
             familyPostRepository = InMemoryFamilyPostRepository(),
             chatMessageRepository = InMemoryChatMessageRepository(),
+            imageStoragePort = FakeImageStoragePort(),
         )
 
         service.reset(DemoVariant.DEMO)
 
-        assertTrue(photoRepo.findAllByOwnerUserIdOrderByCreatedAtDesc(parentId).isEmpty())
+        // The stale photo (and everything hanging off it) is gone.
         assertTrue(questionRepo.findAllByMemoryPhotoIdOrderBySortOrderAsc(photo.id).isEmpty())
         assertTrue(draftQuestionRepo.findAllByMemoryPhotoIdOrderBySortOrderAsc(photo.id).isEmpty())
         assertTrue(attemptRepo.findAttemptedPhotoIds(setOf(photo.id)).isEmpty())
 
-        // EVAL account's photo must survive.
+        // A fresh, ready-to-play baseline gallery replaces it.
+        val freshPhotos = photoRepo.findAllByOwnerUserIdOrderByCreatedAtDesc(parentId)
+        assertEquals(3, freshPhotos.size)
+        assertTrue(freshPhotos.none { it.id == photo.id })
+        assertTrue(freshPhotos.all { it.status == MemoryPhotoStatus.QUIZ_ACTIVE })
+        freshPhotos.forEach { seeded ->
+            assertTrue(questionRepo.findAllByMemoryPhotoIdOrderBySortOrderAsc(seeded.id).isNotEmpty())
+        }
+
+        // EVAL account's photo must survive untouched.
         assertEquals(1, photoRepo.findAllByOwnerUserIdOrderByCreatedAtDesc(evalParentId).size)
     }
 
@@ -209,6 +221,7 @@ class DemoResetServiceTest {
             memoryQuizAttemptRepository = InMemoryMemoryQuizAttemptRepository(),
             familyPostRepository = postRepo,
             chatMessageRepository = messageRepo,
+            imageStoragePort = FakeImageStoragePort(),
         )
 
         service.reset(DemoVariant.DEMO)
@@ -361,5 +374,10 @@ class DemoResetServiceTest {
         override fun deleteAllByParticipant(userId: UUID) {
             store.removeIf { it.senderId == userId || it.recipientId == userId }
         }
+    }
+
+    private class FakeImageStoragePort : com.remine.memory.application.port.outbound.ImageStoragePort {
+        override fun store(bytes: ByteArray, originalFilename: String, contentType: String): String =
+            "https://example.com/uploads/$originalFilename"
     }
 }
